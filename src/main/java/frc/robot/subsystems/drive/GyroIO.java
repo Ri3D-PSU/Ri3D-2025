@@ -19,7 +19,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface GyroIO {
   @AutoLog
   public static class GyroIOInputs {
-    public boolean connected = false;
+    public boolean isConnected = false;
     public Rotation2d yawPosition = new Rotation2d();
     public double[] odometryYawTimestamps = new double[] {};
     public Rotation2d[] odometryYawPositions = new Rotation2d[] {};
