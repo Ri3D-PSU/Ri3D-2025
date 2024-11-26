@@ -49,7 +49,7 @@ public class Module {
       case REPLAY:
         driveFeedforward = new SimpleMotorFeedforward(0.1, 0.13);
         driveFeedback = new PIDController(0.05, 0.0, 0.0);
-        turnFeedback = new PIDController(2.25, 0.0, 0.005);
+        turnFeedback = new PIDController(6.5, 0.0, 0.005);
         break;
       case SIM:
         driveFeedforward = new SimpleMotorFeedforward(0.0, 0.13);
@@ -160,11 +160,7 @@ public class Module {
 
   /** Returns the current turn angle of the module. */
   public Rotation2d getAngle() {
-    if (turnRelativeOffset == null) {
-      return new Rotation2d();
-    } else {
-      return inputs.turnPosition.plus(turnRelativeOffset);
-    }
+    return inputs.turnPosition;
   }
 
   /** Returns the current drive position of the module in meters. */

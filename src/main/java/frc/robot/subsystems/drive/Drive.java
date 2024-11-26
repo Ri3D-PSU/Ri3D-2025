@@ -133,12 +133,13 @@ public class Drive extends SubsystemBase {
     gyroIO.updateInputs(gyroInputs);
     for (var module : modules) {
       module.updateInputs();
+      // System.out.println(module.getAngleAbsolute());s
     }
 
-    // System.out.println("FL Angle: " + modules[0].getAngle());
-    // System.out.println("FR Angle: " + modules[1].getAngle());
-    // System.out.println("BL Angle: " + modules[2].getAngle());
-    // System.out.println("BR Angle: " + modules[3].getAngle());
+    System.out.println("FL Angle: " + modules[0].getAngle());
+    System.out.println("FR Angle: " + modules[1].getAngle());
+    System.out.println("BL Angle: " + modules[2].getAngle());
+    System.out.println("BR Angle: " + modules[3].getAngle());
     odometryLock.unlock();
     Logger.processInputs("Drive/Gyro", gyroInputs);
     for (var module : modules) {
@@ -342,6 +343,47 @@ public class Drive extends SubsystemBase {
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
                   linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                  omega * drive.getMaxAngularSpeedRadPerSec(),
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation()));
+        },
+        drive);
+  }
+
+  public static Command joystickDriveSlow(
+      Drive drive,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier omegaSupplier) {
+    return Commands.run(
+        () -> {
+          // Apply deadband
+          double linearMagnitude =
+              MathUtil.applyDeadband(
+                  Math.hypot(xSupplier.getAsDouble(), ySupplier.getAsDouble()), DEADBAND);
+          Rotation2d linearDirection =
+              new Rotation2d(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+          double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
+
+          // Square values
+          linearMagnitude = linearMagnitude * linearMagnitude;
+          omega = Math.copySign(omega * omega, omega);
+
+          // Calcaulate new linear velocity
+          Translation2d linearVelocity =
+              new Pose2d(new Translation2d(), linearDirection)
+                  .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
+                  .getTranslation();
+
+          // Convert to field relative speeds & send command
+          boolean isFlipped =
+              DriverStation.getAlliance().isPresent()
+                  && DriverStation.getAlliance().get() == Alliance.Red;
+          drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec() * 0.25,
+                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec() * 0.25,
                   omega * drive.getMaxAngularSpeedRadPerSec(),
                   isFlipped
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
