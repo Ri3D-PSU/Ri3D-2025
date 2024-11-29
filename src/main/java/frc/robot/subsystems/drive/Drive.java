@@ -136,10 +136,10 @@ public class Drive extends SubsystemBase {
       // System.out.println(module.getAngleAbsolute());s
     }
 
-    System.out.println("FL Angle: " + modules[0].getAngle());
-    System.out.println("FR Angle: " + modules[1].getAngle());
-    System.out.println("BL Angle: " + modules[2].getAngle());
-    System.out.println("BR Angle: " + modules[3].getAngle());
+    // System.out.println("FL Angle: " + modules[0].getAngle());
+    // System.out.println("FR Angle: " + modules[1].getAngle());
+    // System.out.println("BL Angle: " + modules[2].getAngle());
+    // System.out.println("BR Angle: " + modules[3].getAngle());
     odometryLock.unlock();
     Logger.processInputs("Drive/Gyro", gyroInputs);
     for (var module : modules) {
@@ -320,9 +320,9 @@ public class Drive extends SubsystemBase {
           // Apply deadband
           double linearMagnitude =
               MathUtil.applyDeadband(
-                  Math.hypot(xSupplier.getAsDouble(), ySupplier.getAsDouble()), DEADBAND);
+                  Math.hypot(-xSupplier.getAsDouble(), ySupplier.getAsDouble()), DEADBAND);
           Rotation2d linearDirection =
-              new Rotation2d(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+              new Rotation2d(-xSupplier.getAsDouble(), ySupplier.getAsDouble());
           double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
 
           // Square values
@@ -361,9 +361,9 @@ public class Drive extends SubsystemBase {
           // Apply deadband
           double linearMagnitude =
               MathUtil.applyDeadband(
-                  Math.hypot(xSupplier.getAsDouble(), ySupplier.getAsDouble()), DEADBAND);
+                  Math.hypot(-xSupplier.getAsDouble(), ySupplier.getAsDouble()), DEADBAND);
           Rotation2d linearDirection =
-              new Rotation2d(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+              new Rotation2d(-xSupplier.getAsDouble(), ySupplier.getAsDouble());
           double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
 
           // Square values

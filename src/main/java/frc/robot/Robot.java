@@ -13,6 +13,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -58,31 +59,33 @@ public class Robot extends LoggedRobot {
 
     // Set up data receivers & replay source
     switch (Constants.currentMode) {
-      case REAL:
-        // Running on a real robot, log to a USB stick ("/U/logs")
-        Logger.addDataReceiver(new WPILOGWriter());
+      case REAL -> {
+        Utility.deleteOldLogs(Constants.LOG_DIRECTORY, Constants.MIN_FREE_SPACE);
+        new PowerDistribution();
+        Logger.addDataReceiver(new WPILOGWriter(Constants.LOG_DIRECTORY));
         Logger.addDataReceiver(new NT4Publisher());
-        break;
+      }
 
-      case SIM:
-        // Running a physics simulator, log to NT
+        // Running a physics simulator, log to local folder
+      case SIM -> {
+        Logger.addDataReceiver(new WPILOGWriter(""));
         Logger.addDataReceiver(new NT4Publisher());
-        break;
+      }
 
-      case REPLAY:
         // Replaying a log, set up replay source
+      case REPLAY -> {
         setUseTiming(false); // Run as fast as possible
         String logPath = LogFileUtil.findReplayLog();
         Logger.setReplaySource(new WPILOGReader(logPath));
         Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
-        break;
+      }
     }
 
     // See http://bit.ly/3YIzFZ6 for more information on timestamps in AdvantageKit.
     // Logger.disableDeterministicTimestamps()
 
     // Start AdvantageKit logger
-    // Logger.start();
+    Logger.start();
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.

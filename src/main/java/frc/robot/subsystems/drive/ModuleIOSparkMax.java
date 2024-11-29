@@ -13,21 +13,18 @@
 
 package frc.robot.subsystems.drive;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
-import com.revrobotics.SparkAbsoluteEncoder.Type;
-import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxAbsoluteEncoder;
-
+import com.revrobotics.SparkAbsoluteEncoder.Type;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import java.util.OptionalDouble;
 import java.util.Queue;
-import com.reduxrobotics.sensors.canandmag.Canandmag;
 
 /**
  * Module IO implementation for SparkMax drive motor controller, SparkMax turn motor controller (NEO
@@ -74,12 +71,12 @@ public class ModuleIOSparkMax implements ModuleIO {
       case 2:
         driveSparkMax = new CANSparkMax(14, MotorType.kBrushless);
         turnSparkMax = new CANSparkMax(10, MotorType.kBrushless);
-        absoluteEncoderOffset = new Rotation2d(Units.degreesToRadians(0)); // MUST BE CALIBRATED
+        absoluteEncoderOffset = new Rotation2d(Units.degreesToRadians(180)); // MUST BE CALIBRATED
         break;
       case 3:
         driveSparkMax = new CANSparkMax(15, MotorType.kBrushless);
         turnSparkMax = new CANSparkMax(11, MotorType.kBrushless);
-        absoluteEncoderOffset = new Rotation2d(Units.degreesToRadians(0)); // MUST BE CALIBRATED
+        absoluteEncoderOffset = new Rotation2d(Units.degreesToRadians(180)); // MUST BE CALIBRATED
         break;
       default:
         throw new RuntimeException("Invalid module index");
@@ -96,7 +93,7 @@ public class ModuleIOSparkMax implements ModuleIO {
     driveEncoder = driveSparkMax.getEncoder();
     turnRelativeEncoder = turnSparkMax.getEncoder();
     // turnAbsoluteEncoder.setZeroOffset(0.0); // Set the correct offset
-    // turnAbsoluteEncoder.setInverted(false); // Invert if necessary
+    turnAbsoluteEncoder.setInverted(false); // Invert if necessary
 
     turnSparkMax.setInverted(isTurnMotorInverted);
     driveSparkMax.setSmartCurrentLimit(40);
@@ -159,9 +156,10 @@ public class ModuleIOSparkMax implements ModuleIO {
     inputs.turnAbsolutePosition =
         new Rotation2d(turnAbsoluteEncoder.getPosition()).minus(absoluteEncoderOffset);
     inputs.turnPosition =
-        Rotation2d.fromRotations(turnRelativeEncoder.getPosition() / TURN_GEAR_RATIO);
+        Rotation2d.fromRotations(
+            (turnAbsoluteEncoder.getPosition() / TURN_GEAR_RATIO) * 2 * 2 * Math.PI);
     inputs.turnVelocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(turnRelativeEncoder.getVelocity())
+        Units.rotationsPerMinuteToRadiansPerSecond(turnAbsoluteEncoder.getVelocity())
             / TURN_GEAR_RATIO;
     inputs.turnAppliedVolts = turnSparkMax.getAppliedOutput() * turnSparkMax.getBusVoltage();
     inputs.turnCurrentAmps = new double[] {turnSparkMax.getOutputCurrent()};
