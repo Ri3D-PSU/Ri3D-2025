@@ -34,7 +34,7 @@ public class GyroIONavX implements GyroIO {
                 () -> {
                   boolean valid = navx.isConnected() && !navx.isCalibrating();
                   if (valid) {
-                    return OptionalDouble.of(navx.getRotation2d().getRadians());
+                    return OptionalDouble.of(navx.getAngle());
                   } else {
                     return OptionalDouble.empty();
                   }
@@ -55,5 +55,9 @@ public class GyroIONavX implements GyroIO {
             .toArray(Rotation2d[]::new);
     yawTimestampQueue.clear();
     yawPositionQueue.clear();
+  }
+
+  public void resetGyro() {
+    navx.reset();
   }
 }
