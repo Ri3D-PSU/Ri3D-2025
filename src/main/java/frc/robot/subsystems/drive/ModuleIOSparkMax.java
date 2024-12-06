@@ -14,7 +14,6 @@
 package frc.robot.subsystems.drive;
 
 import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
@@ -95,7 +94,7 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnRelativeEncoder = turnSparkMax.getEncoder();
     // turnAbsoluteEncoder.setZeroOffset(0.0); // Set the correct offset
     turnAbsoluteEncoder.setInverted(false); // Invert if necessary
-    turnAbsoluteEncoder.setPositionConversionFactor(TURN_GEAR_RATIO / 2);
+    turnAbsoluteEncoder.setPositionConversionFactor(0);
 
     turnSparkMax.setInverted(isTurnMotorInverted);
     driveSparkMax.setSmartCurrentLimit(40);
@@ -142,11 +141,11 @@ public class ModuleIOSparkMax implements ModuleIO {
                   }
                 });
 
-    var turnPidController = turnSparkMax.getPIDController();
-    turnPidController.setFeedbackDevice(turnAbsoluteEncoder);
-    turnPidController.setP(2);
-    turnPidController.setI(0);
-    turnPidController.setD(0);
+    // var turnPidController = turnSparkMax.getPIDController();
+    // turnPidController.setFeedbackDevice(turnAbsoluteEncoder);
+    // turnPidController.setP(0.75);
+    // turnPidController.setI(0);
+    // turnPidController.setD(0.005);
 
     driveSparkMax.burnFlash();
     turnSparkMax.burnFlash();
@@ -163,7 +162,9 @@ public class ModuleIOSparkMax implements ModuleIO {
 
     inputs.turnAbsolutePosition =
         new Rotation2d(turnAbsoluteEncoder.getPosition()).minus(absoluteEncoderOffset);
-    inputs.turnPosition = Rotation2d.fromRadians(turnAbsoluteEncoder.getPosition());
+    inputs.turnPosition =
+        Rotation2d.fromRotations(
+            (turnAbsoluteEncoder.getPosition() / TURN_GEAR_RATIO) * 2 * 2 * Math.PI);
     inputs.turnVelocityRadPerSec =
         Units.rotationsPerMinuteToRadiansPerSecond(turnAbsoluteEncoder.getVelocity())
             / TURN_GEAR_RATIO;
@@ -204,10 +205,5 @@ public class ModuleIOSparkMax implements ModuleIO {
   @Override
   public void setTurnBrakeMode(boolean enable) {
     turnSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
-  }
-
-  @Override
-  public void setTurnAngle(double radians) {
-    turnSparkMax.getPIDController().setReference(radians, ControlType.kPosition);
   }
 }

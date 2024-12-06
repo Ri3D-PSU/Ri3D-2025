@@ -20,7 +20,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
-import frc.robot.Constants.Mode;
 import org.littletonrobotics.junction.Logger;
 
 public class Module {
@@ -127,12 +126,7 @@ public class Module {
     var optimizedState = SwerveModuleState.optimize(state, getAngle());
 
     // Update setpoints, controllers run in "periodic"
-    if (Constants.currentMode == Mode.REAL) {
-      io.setTurnAngle(optimizedState.angle.getRadians());
-      angleSetpoint = null;
-    } else {
-      angleSetpoint = optimizedState.angle;
-    }
+    angleSetpoint = optimizedState.angle;
     speedSetpoint = optimizedState.speedMetersPerSecond;
 
     return optimizedState;
