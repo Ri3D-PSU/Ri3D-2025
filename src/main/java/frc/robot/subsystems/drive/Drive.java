@@ -521,7 +521,6 @@ public class Drive extends SubsystemBase {
                                                             .rotateBy(drive.getRotation()
                                                                            .minus(Rotation2d.fromRadians(robotToTagAngleDifference)));
 
-
               double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
               omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
           }
