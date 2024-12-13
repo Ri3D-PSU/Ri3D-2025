@@ -517,7 +517,7 @@ public class Drive extends SubsystemBase {
               double forwardDistance = cameraToTarget.getX() * Math.cos(photonvisionCameraAngle);
 
               linearVelocity = new Translation2d(MathUtil.clamp((forwardDistance - .5) * DRIVING_TOWARD_P, -1, 1),
-                                                                      MathUtil.clamp(strafeDistance * DRIVING_STRAFE_P, -1, 1))
+                                                 MathUtil.clamp(strafeDistance * DRIVING_STRAFE_P, -1, 1))
                                                             .rotateBy(drive.getRotation()
                                                                            .minus(Rotation2d.fromRadians(robotToTagAngleDifference)));
 
