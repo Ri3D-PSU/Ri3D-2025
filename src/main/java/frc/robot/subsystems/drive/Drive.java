@@ -25,7 +25,6 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -42,8 +41,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIO;
-import frc.robot.subsystems.vision.LoggableAprilTagVisionIOInputsAutoLogged;
-import frc.robot.subsystems.vision.AprilTagVisionIO.UnloggableAprilTagVisionIOInputs;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -79,10 +76,7 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
   
-  private final AprilTagVisionIO aprilTagVisionIO;
   private final AprilTagVision aprilTagVision;
-  private final LoggableAprilTagVisionIOInputsAutoLogged loggableAprilTagVisionInputs = new LoggableAprilTagVisionIOInputsAutoLogged();
-  private final UnloggableAprilTagVisionIOInputs unloggableAprilTagVisionInputs = new UnloggableAprilTagVisionIOInputs();
 
   public Drive(
       GyroIO gyroIO,
@@ -93,7 +87,6 @@ public class Drive extends SubsystemBase {
       ModuleIO brModuleIO) {
     this.gyroIO = gyroIO;
     gyro = new Gyro(gyroIO);
-    this.aprilTagVisionIO = aprilTagVisionIO;
     aprilTagVision = new AprilTagVision(aprilTagVisionIO);
     modules[0] = new Module(flModuleIO, 0);
     modules[1] = new Module(frModuleIO, 1);
