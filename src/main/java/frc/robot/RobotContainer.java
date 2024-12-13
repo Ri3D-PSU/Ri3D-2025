@@ -29,6 +29,8 @@ import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
+import frc.robot.subsystems.vision.AprilTagVisionIOPhotonvision;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -55,6 +57,7 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIONavX(),
+                new AprilTagVisionIOPhotonvision(),
                 new ModuleIOSparkMax(0),
                 new ModuleIOSparkMax(1),
                 new ModuleIOSparkMax(2),
@@ -66,6 +69,7 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIO() {},
+                new AprilTagVisionIOPhotonvision(),
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim(),
@@ -77,6 +81,7 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIO() {},
+                new AprilTagVisionIOPhotonvision(),
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {},

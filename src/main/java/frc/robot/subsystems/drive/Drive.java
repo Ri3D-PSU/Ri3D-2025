@@ -25,6 +25,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -39,6 +40,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.subsystems.vision.AprilTagVision;
+import frc.robot.subsystems.vision.AprilTagVisionIO;
+import frc.robot.subsystems.vision.LoggableAprilTagVisionIOInputsAutoLogged;
+import frc.robot.subsystems.vision.AprilTagVisionIO.UnloggableAprilTagVisionIOInputs;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -73,15 +78,23 @@ public class Drive extends SubsystemBase {
       };
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  
+  private final AprilTagVisionIO aprilTagVisionIO;
+  private final AprilTagVision aprilTagVision;
+  private final LoggableAprilTagVisionIOInputsAutoLogged loggableAprilTagVisionInputs = new LoggableAprilTagVisionIOInputsAutoLogged();
+  private final UnloggableAprilTagVisionIOInputs unloggableAprilTagVisionInputs = new UnloggableAprilTagVisionIOInputs();
 
   public Drive(
       GyroIO gyroIO,
+      AprilTagVisionIO aprilTagVisionIO,
       ModuleIO flModuleIO,
       ModuleIO frModuleIO,
       ModuleIO blModuleIO,
       ModuleIO brModuleIO) {
     this.gyroIO = gyroIO;
     gyro = new Gyro(gyroIO);
+    this.aprilTagVisionIO = aprilTagVisionIO;
+    aprilTagVision = new AprilTagVision(aprilTagVisionIO);
     modules[0] = new Module(flModuleIO, 0);
     modules[1] = new Module(frModuleIO, 1);
     modules[2] = new Module(blModuleIO, 2);
@@ -398,6 +411,60 @@ public class Drive extends SubsystemBase {
                   linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec() * 0.1,
                   linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec() * 0.1,
                   omega * drive.getMaxAngularSpeedRadPerSec() * 0.25,
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation()));
+        },
+        drive);
+  }
+
+  public static Command driveFacingAprilTag(
+      Drive drive,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier omegaSupplier) {
+    return Commands.run(
+        () -> {
+          double HEADING_P = 0;
+
+          // Apply deadband
+          double linearMagnitude =
+              MathUtil.applyDeadband(
+                  Math.hypot(-xSupplier.getAsDouble(), ySupplier.getAsDouble()), DEADBAND);
+          Rotation2d linearDirection =
+              new Rotation2d(-xSupplier.getAsDouble(), ySupplier.getAsDouble());
+          double omega = MathUtil.applyDeadband(-omegaSupplier.getAsDouble(), DEADBAND);
+
+          // Square values
+          linearMagnitude = linearMagnitude * linearMagnitude;
+          omega = Math.copySign(omega * omega, omega);
+
+
+          // Calcaulate new linear velocity
+          Translation2d linearVelocity =
+              new Pose2d(new Translation2d(), linearDirection)
+                  .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
+                  .getTranslation();
+
+          // Convert to field relative speeds & send command
+          boolean isFlipped =
+              DriverStation.getAlliance().isPresent()
+                  && DriverStation.getAlliance().get() == Alliance.Red;
+
+          if (!(drive.aprilTagVision.getCamToTag() == null)) {
+              Transform2d cameraToTarget = new Transform2d(
+                  drive.aprilTagVision.getCamToTag().getTranslation().toTranslation2d(),
+                  drive.aprilTagVision.getCamToTag().getRotation().toRotation2d());
+
+              double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
+              omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
+          }
+
+          drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                  omega * drive.getMaxAngularSpeedRadPerSec(),
                   isFlipped
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
                       : drive.getRotation()));

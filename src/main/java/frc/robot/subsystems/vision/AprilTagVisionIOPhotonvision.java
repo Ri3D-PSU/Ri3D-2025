@@ -59,7 +59,7 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   }
 
   public Transform3d getCamToTag(List<PhotonPipelineResult> results) {
-    Transform3d camToTag = new Transform3d();
+    Transform3d camToTag = null;
     for (PhotonPipelineResult result : results) {
       if (result.hasTargets()) {
         camToTag = result.getBestTarget().getBestCameraToTarget();

@@ -13,7 +13,8 @@ public interface AprilTagVisionIO {
     public double[] ntPose = {0, 0, 0, 0, 0, 0};
     public Transform3d latestCamToTagTranslation = new Transform3d();
   }
-
+  
+// Autolog doesn't work on these types
   public static class UnloggableAprilTagVisionIOInputs {
     public List<PhotonPipelineResult> unreadResults = null;
     public Optional<EstimatedRobotPose> latestEstimatedPose = Optional.empty();
