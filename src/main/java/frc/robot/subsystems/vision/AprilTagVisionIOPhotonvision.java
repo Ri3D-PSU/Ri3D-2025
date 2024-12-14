@@ -20,6 +20,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 
 public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   private final String CAMERA_NAME = "Camera_Module_v1";
+  private LoggableAprilTagVisionIOInputs loggableInputs = new LoggableAprilTagVisionIOInputs();
   PIDController pid = new PIDController(0.2, 0, 0);
   private final AprilTagFieldLayout APRILTAGFIELDLAYOUT =
       AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
@@ -50,8 +51,8 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
       UnloggableAprilTagVisionIOInputs unloggableInputs) {
     loggableInputs.ntPose = poseSub.get();
     loggableInputs.ntYaw = yaw.get();
-    unloggableInputs.latestEstimatedPose = updatePoseEstimator(unloggableInputs.unreadResults);
-    loggableInputs.latestCamToTagTranslation = getCamToTag(unloggableInputs.unreadResults);
+    // unloggableInputs.latestEstimatedPose = updatePoseEstimator(unloggableInputs.unreadResults);
+    // loggableInputs.latestCamToTagTranslation = getCamToTag(unloggableInputs.unreadResults);
   }
 
   public Optional<EstimatedRobotPose> updatePoseEstimator(List<PhotonPipelineResult> results) {
@@ -75,6 +76,8 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
 
   @Override
   public double autoAlign() {
-    return pid.calculate(yaw.get(), 0);
+    System.out.println(yaw.get());
+
+    return pid.calculate(yaw.get(), 0) * 0.2;
   }
 }

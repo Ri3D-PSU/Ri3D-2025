@@ -9,8 +9,10 @@ import org.photonvision.EstimatedRobotPose;
 public class AprilTagVision extends SubsystemBase {
 
   private AprilTagVisionIO io;
-  private LoggableAprilTagVisionIOInputsAutoLogged loggableIOInputs;
-  private UnloggableAprilTagVisionIOInputs unloggableIOInputs;
+  private LoggableAprilTagVisionIOInputsAutoLogged loggableInputs =
+      new LoggableAprilTagVisionIOInputsAutoLogged();
+  private UnloggableAprilTagVisionIOInputs unloggableInputs =
+      new UnloggableAprilTagVisionIOInputs();
 
   public AprilTagVision(AprilTagVisionIO io) {
     this.io = io;
@@ -25,14 +27,14 @@ public class AprilTagVision extends SubsystemBase {
   }
 
   public void updateInputs() {
-    io.updateInputs(loggableIOInputs, unloggableIOInputs);
+    io.updateInputs(loggableInputs, unloggableInputs);
   }
 
   public Optional<EstimatedRobotPose> getEstimatedPose() {
-    return unloggableIOInputs.latestEstimatedPose;
+    return unloggableInputs.latestEstimatedPose;
   }
 
   public Transform3d getCamToTag() {
-    return loggableIOInputs.latestCamToTagTranslation;
+    return loggableInputs.latestCamToTagTranslation;
   }
 }
