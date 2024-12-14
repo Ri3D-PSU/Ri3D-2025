@@ -29,8 +29,8 @@ import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
+import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIOPhotonvision;
-
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -42,6 +42,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final AprilTagVision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -54,6 +55,7 @@ public class RobotContainer {
     switch (Constants.currentMode) {
       case REAL: // NAVX instead of pigeon
         // Real robot, instantiate hardware IO implementations
+        vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         drive =
             new Drive(
                 new GyroIONavX(),
@@ -65,6 +67,7 @@ public class RobotContainer {
         break;
 
       case SIM:
+        vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
@@ -77,6 +80,7 @@ public class RobotContainer {
         break;
 
       default:
+        vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         // Replayed robot, disable IO implementations
         drive =
             new Drive(
@@ -130,6 +134,14 @@ public class RobotContainer {
                 () -> -controller.getLeftX(),
                 () -> -controller.getRightX()));
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    controller
+        .a()
+        .whileTrue(
+            Drive.joystickDrive(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> -vision.autoAlign()));
     controller
         .b()
         .onTrue(

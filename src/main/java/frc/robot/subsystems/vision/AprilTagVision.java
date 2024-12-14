@@ -16,6 +16,10 @@ public class AprilTagVision extends SubsystemBase {
     this.io = io;
   }
 
+  public double autoAlign() {
+    return io.autoAlign();
+  }
+
   public void periodic() {
     updateInputs();
   }

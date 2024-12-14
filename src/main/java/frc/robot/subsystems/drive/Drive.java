@@ -75,7 +75,7 @@ public class Drive extends SubsystemBase {
       };
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
-  
+
   private final AprilTagVision aprilTagVision;
 
   public Drive(
@@ -432,7 +432,6 @@ public class Drive extends SubsystemBase {
           linearMagnitude = linearMagnitude * linearMagnitude;
           omega = Math.copySign(omega * omega, omega);
 
-
           // Calcaulate new linear velocity
           Translation2d linearVelocity =
               new Pose2d(new Translation2d(), linearDirection)
@@ -445,12 +444,13 @@ public class Drive extends SubsystemBase {
                   && DriverStation.getAlliance().get() == Alliance.Red;
 
           if (!(drive.aprilTagVision.getCamToTag() == null)) {
-              Transform2d cameraToTarget = new Transform2d(
-                  drive.aprilTagVision.getCamToTag().getTranslation().toTranslation2d(),
-                  drive.aprilTagVision.getCamToTag().getRotation().toRotation2d());
+            Transform2d cameraToTarget =
+                new Transform2d(
+                    drive.aprilTagVision.getCamToTag().getTranslation().toTranslation2d(),
+                    drive.aprilTagVision.getCamToTag().getRotation().toRotation2d());
 
-              double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
-              omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
+            double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
+            omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
           }
 
           drive.runVelocity(
@@ -488,7 +488,6 @@ public class Drive extends SubsystemBase {
           linearMagnitude = linearMagnitude * linearMagnitude;
           omega = Math.copySign(omega * omega, omega);
 
-
           // Calcaulate new linear velocity
           Translation2d linearVelocity =
               new Pose2d(new Translation2d(), linearDirection)
@@ -501,28 +500,34 @@ public class Drive extends SubsystemBase {
                   && DriverStation.getAlliance().get() == Alliance.Red;
 
           if (!(drive.aprilTagVision.getCamToTag() == null)) {
-              Transform2d cameraToTarget = new Transform2d(
-                  drive.aprilTagVision.getCamToTag().getTranslation().toTranslation2d(),
-                  drive.aprilTagVision.getCamToTag().getRotation().toRotation2d());
+            Transform2d cameraToTarget =
+                new Transform2d(
+                    drive.aprilTagVision.getCamToTag().getTranslation().toTranslation2d(),
+                    drive.aprilTagVision.getCamToTag().getRotation().toRotation2d());
 
-              
-              double photonvisionCameraAngle = cameraToTarget.getRotation().getRadians();
-              double robotToTagAngleDifference = Math.copySign(Math.PI - Math.abs(photonvisionCameraAngle), photonvisionCameraAngle);
-                  
-              // Projects vector pointing from camera to apriltag onto the plane of the apriltag
-              // Magnitude of the projection
-              double strafeDistance = cameraToTarget.getX() * -Math.sin(photonvisionCameraAngle);
-              // Projects vector pointing from camera to apriltag onto the normal of the plane of the apriltag
-              // Magnitude of the projection
-              double forwardDistance = cameraToTarget.getX() * Math.cos(photonvisionCameraAngle);
+            double photonvisionCameraAngle = cameraToTarget.getRotation().getRadians();
+            double robotToTagAngleDifference =
+                Math.copySign(Math.PI - Math.abs(photonvisionCameraAngle), photonvisionCameraAngle);
 
-              linearVelocity = new Translation2d(MathUtil.clamp((forwardDistance - .5) * DRIVING_TOWARD_P, -1, 1),
-                                                 MathUtil.clamp(strafeDistance * DRIVING_STRAFE_P, -1, 1))
-                                                            .rotateBy(drive.getRotation()
-                                                                           .minus(Rotation2d.fromRadians(robotToTagAngleDifference)));
+            // Projects vector pointing from camera to apriltag onto the plane of the apriltag
+            // Magnitude of the projection
+            double strafeDistance = cameraToTarget.getX() * -Math.sin(photonvisionCameraAngle);
+            // Projects vector pointing from camera to apriltag onto the normal of the plane of the
+            // apriltag
+            // Magnitude of the projection
+            double forwardDistance = cameraToTarget.getX() * Math.cos(photonvisionCameraAngle);
 
-              double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
-              omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
+            linearVelocity =
+                new Translation2d(
+                        MathUtil.clamp((forwardDistance - .5) * DRIVING_TOWARD_P, -1, 1),
+                        MathUtil.clamp(strafeDistance * DRIVING_STRAFE_P, -1, 1))
+                    .rotateBy(
+                        drive
+                            .getRotation()
+                            .minus(Rotation2d.fromRadians(robotToTagAngleDifference)));
+
+            double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
+            omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
           }
 
           drive.runVelocity(

@@ -11,10 +11,11 @@ public interface AprilTagVisionIO {
   @AutoLog
   public static class LoggableAprilTagVisionIOInputs {
     public double[] ntPose = {0, 0, 0, 0, 0, 0};
+    public double ntYaw = 0;
     public Transform3d latestCamToTagTranslation = new Transform3d();
   }
-  
-// Autolog doesn't work on these types
+
+  // Autolog doesn't work on these types
   public static class UnloggableAprilTagVisionIOInputs {
     public List<PhotonPipelineResult> unreadResults = null;
     public Optional<EstimatedRobotPose> latestEstimatedPose = Optional.empty();
@@ -30,6 +31,10 @@ public interface AprilTagVisionIO {
     return Optional.empty();
   }
   ;
+
+  public default double autoAlign() {
+    return 0;
+  }
 
   public default Transform3d getCamToTag(List<PhotonPipelineResult> results) {
     return new Transform3d();

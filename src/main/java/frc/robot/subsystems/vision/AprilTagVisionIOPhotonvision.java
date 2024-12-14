@@ -2,10 +2,12 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
+import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import java.util.List;
@@ -18,6 +20,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 
 public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   private final String CAMERA_NAME = "Camera_Module_v1";
+  PIDController pid = new PIDController(0.2, 0, 0);
   private final AprilTagFieldLayout APRILTAGFIELDLAYOUT =
       AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
   private final Transform3d ROBOTTOCAM =
@@ -28,15 +31,17 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
               0)); // From docs, cam mounted facing forward, half a meter forward of center, half a
   // meter up from center.
 
-  private PhotonCamera camera = new PhotonCamera(CAMERA_NAME);
+  PhotonCamera camera = new PhotonCamera("photonvision/Camera_Module_v1");
   private PhotonPoseEstimator poseEstimator =
       new PhotonPoseEstimator(
           APRILTAGFIELDLAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, ROBOTTOCAM);
-
+  double[] def1 = {0, 0, 0, 0, 0, 0};
   private NetworkTable cameraTable =
       NetworkTableInstance.getDefault().getTable(String.format("photonvision/%s", CAMERA_NAME));
   private DoubleArraySubscriber poseSub =
-      cameraTable.getDoubleArrayTopic("targetPose").subscribe(new double[] {});
+      cameraTable.getDoubleArrayTopic("targetPose").subscribe(def1);
+  double defVal = 0;
+  private DoubleSubscriber yaw = cameraTable.getDoubleTopic("targetYaw").subscribe(defVal);
 
   public AprilTagVisionIOPhotonvision() {}
 
@@ -44,7 +49,7 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
       LoggableAprilTagVisionIOInputs loggableInputs,
       UnloggableAprilTagVisionIOInputs unloggableInputs) {
     loggableInputs.ntPose = poseSub.get();
-    unloggableInputs.unreadResults = camera.getAllUnreadResults();
+    loggableInputs.ntYaw = yaw.get();
     unloggableInputs.latestEstimatedPose = updatePoseEstimator(unloggableInputs.unreadResults);
     loggableInputs.latestCamToTagTranslation = getCamToTag(unloggableInputs.unreadResults);
   }
@@ -66,5 +71,10 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
       }
     }
     return camToTag;
+  }
+
+  @Override
+  public double autoAlign() {
+    return pid.calculate(yaw.get(), 0);
   }
 }
