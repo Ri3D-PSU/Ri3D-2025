@@ -13,8 +13,11 @@
 
 package frc.robot;
 
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -31,7 +34,6 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIOPhotonvision;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -122,15 +124,15 @@ public class RobotContainer {
     drive.setDefaultCommand(
         Drive.joystickDrive(
             drive,
-            () -> -controller.getLeftY()* -1,
-            () -> -controller.getLeftX()* -1,
+            () -> -controller.getLeftY() * -1,
+            () -> -controller.getLeftX() * -1,
             () -> -controller.getRightX()));
     controller
         .leftBumper()
         .whileTrue(
             Drive.joystickDriveSlow(
                 drive,
-                () -> -controller.getLeftY() ,
+                () -> -controller.getLeftY(),
                 () -> -controller.getLeftX() * -0.5,
                 () -> -controller.getRightX()));
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -139,8 +141,8 @@ public class RobotContainer {
         .whileTrue(
             Drive.joystickDrive(
                 drive,
-                () -> -controller.getLeftY()* -1,
-                () -> -controller.getLeftX()* -1,
+                () -> -controller.getLeftY() * -1,
+                () -> -controller.getLeftX() * -1,
                 () -> -vision.autoAlign()));
     controller
         .b()
@@ -151,6 +153,14 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+    controller
+        .a()
+        .whileTrue(
+            Drive.driveToAprilTag(
+                drive,
+                () -> -controller.getLeftY() * -1,
+                () -> -controller.getLeftX() * -1,
+                () -> -controller.getRightX()));
     controller.start().onTrue(drive.resetGyroCommand());
   }
 

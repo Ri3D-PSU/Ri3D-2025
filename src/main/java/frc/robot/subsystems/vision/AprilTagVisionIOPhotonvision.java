@@ -10,7 +10,6 @@ import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import java.util.List;
 import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -72,6 +71,6 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   public double autoAlign() {
     System.out.println(yaw.get());
 
-    return pid.calculate(yaw.get(), 0) * 0.2;
+    return pid.calculate(yaw.get(), 0) * -0.2;
   }
 }
