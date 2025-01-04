@@ -141,7 +141,7 @@ public class RobotContainer {
                 drive,
                 () -> controller.getLeftY(),
                 () -> controller.getLeftX(),
-                () -> -vision.autoAlign()));
+                () -> -vision.autoRotate()));
     controller
         .b()
         .onTrue(
@@ -154,11 +154,7 @@ public class RobotContainer {
     controller
         .y()
         .whileTrue(
-            Drive.drive(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX() * 0,
-                () -> -vision.autoAlign()));
+            Drive.drive(drive, () -> 0, () -> vision.autoTranslateX(), () -> -vision.autoRotate()));
     controller.start().onTrue(drive.resetGyroCommand());
   }
 

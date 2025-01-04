@@ -18,8 +18,12 @@ public class AprilTagVision extends SubsystemBase {
     this.io = io;
   }
 
-  public double autoAlign() {
-    return io.autoAlign();
+  public double autoRotate() {
+    return io.autoRotate();
+  }
+
+  public double autoTranslateX() {
+    return io.autoTranslateX();
   }
 
   public void periodic() {
