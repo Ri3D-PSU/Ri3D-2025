@@ -21,7 +21,7 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   private final String CAMERA_NAME = "Camera_Module_v1";
   private LoggableAprilTagVisionIOInputs loggableInputs = new LoggableAprilTagVisionIOInputs();
   PIDController rotatePid = new PIDController(0.25, 0, 0);
-  PIDController xPid = new PIDController(0.5, 0, 0);
+  PIDController xPid = new PIDController(0.35, 0, 0);
   private final AprilTagFieldLayout APRILTAGFIELDLAYOUT =
       AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
   private final Transform3d ROBOTTOCAM =
@@ -79,6 +79,6 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
 
   @Override
   public double autoTranslateX() {
-    return xPid.calculate(x.get(), 0);
+    return -xPid.calculate(x.get(), 116);
   }
 }
