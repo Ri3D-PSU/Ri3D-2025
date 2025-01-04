@@ -120,27 +120,27 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     drive.setDefaultCommand(
-        Drive.pDrive(
+        Drive.drive(
             drive,
-            () -> -controller.getLeftY() * -1,
-            () -> -controller.getLeftX() * -1,
+            () -> controller.getLeftY(),
+            () -> controller.getLeftX(),
             () -> -controller.getRightX()));
     controller
         .leftBumper()
         .whileTrue(
-            Drive.joystickDriveSlow(
+            Drive.drive(
                 drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX() * -0.5,
-                () -> -controller.getRightX()));
+                () -> controller.getLeftY() * 0.1,
+                () -> controller.getLeftX() * 0.1,
+                () -> -controller.getRightX() * 0.25));
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
     controller
         .a()
         .whileTrue(
-            Drive.pDrive(
+            Drive.drive(
                 drive,
-                () -> -controller.getLeftY() * -1,
-                () -> -controller.getLeftX() * -1,
+                () -> controller.getLeftY(),
+                () -> controller.getLeftX(),
                 () -> -vision.autoAlign()));
     controller
         .b()
@@ -154,7 +154,7 @@ public class RobotContainer {
     controller
         .y()
         .whileTrue(
-            Drive.pDrive(
+            Drive.drive(
                 drive,
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX() * 0,

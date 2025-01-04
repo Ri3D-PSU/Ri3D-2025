@@ -319,7 +319,7 @@ public class Drive extends SubsystemBase {
   /**
    * Field relative drive command using two joysticks (controlling linear and angular velocities).
    */
-  public static Command pDrive(
+  public static Command drive(
       Drive drive,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
@@ -360,6 +360,10 @@ public class Drive extends SubsystemBase {
         drive);
   }
 
+  public Command driveToTag() {
+    
+  }
+
   public Command resetGyroCommand() {
     Command c =
         new InstantCommand(
@@ -368,47 +372,6 @@ public class Drive extends SubsystemBase {
             });
     c.addRequirements(this);
     return c;
-  }
-
-  public static Command joystickDriveSlow(
-      Drive drive,
-      DoubleSupplier xSupplier,
-      DoubleSupplier ySupplier,
-      DoubleSupplier omegaSupplier) {
-    return Commands.run(
-        () -> {
-          // Apply deadband
-          double linearMagnitude =
-              MathUtil.applyDeadband(
-                  Math.hypot(-xSupplier.getAsDouble(), ySupplier.getAsDouble()), DEADBAND);
-          Rotation2d linearDirection =
-              new Rotation2d(-xSupplier.getAsDouble(), ySupplier.getAsDouble());
-          double omega = MathUtil.applyDeadband(-omegaSupplier.getAsDouble(), DEADBAND);
-
-          // Square values
-          linearMagnitude = linearMagnitude * linearMagnitude;
-          omega = Math.copySign(omega * omega, omega);
-
-          // Calcaulate new linear velocity
-          Translation2d linearVelocity =
-              new Pose2d(new Translation2d(), linearDirection)
-                  .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
-                  .getTranslation();
-
-          // Convert to field relative speeds & send command
-          boolean isFlipped =
-              DriverStation.getAlliance().isPresent()
-                  && DriverStation.getAlliance().get() == Alliance.Red;
-          drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(
-                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec() * 0.1,
-                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec() * 0.1,
-                  omega * drive.getMaxAngularSpeedRadPerSec() * 0.25,
-                  isFlipped
-                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                      : drive.getRotation()));
-        },
-        drive);
   }
 
   public static Command driveFacingAprilTag(
