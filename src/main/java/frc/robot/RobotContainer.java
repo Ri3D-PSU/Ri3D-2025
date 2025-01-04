@@ -13,11 +13,8 @@
 
 package frc.robot;
 
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -34,6 +31,7 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIOPhotonvision;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -122,7 +120,7 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     drive.setDefaultCommand(
-        Drive.joystickDrive(
+        Drive.pDrive(
             drive,
             () -> -controller.getLeftY() * -1,
             () -> -controller.getLeftX() * -1,
@@ -139,7 +137,7 @@ public class RobotContainer {
     controller
         .a()
         .whileTrue(
-            Drive.joystickDrive(
+            Drive.pDrive(
                 drive,
                 () -> -controller.getLeftY() * -1,
                 () -> -controller.getLeftX() * -1,
@@ -154,13 +152,13 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
     controller
-        .a()
+        .y()
         .whileTrue(
-            Drive.driveToAprilTag(
+            Drive.pDrive(
                 drive,
-                () -> -controller.getLeftY() * -1,
-                () -> -controller.getLeftX() * -1,
-                () -> -controller.getRightX()));
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX() * 0,
+                () -> -vision.autoAlign()));
     controller.start().onTrue(drive.resetGyroCommand());
   }
 
