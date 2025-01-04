@@ -51,25 +51,19 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
       UnloggableAprilTagVisionIOInputs unloggableInputs) {
     loggableInputs.ntPose = poseSub.get();
     loggableInputs.ntYaw = yaw.get();
-    // unloggableInputs.latestEstimatedPose = updatePoseEstimator(unloggableInputs.unreadResults);
-    // loggableInputs.latestCamToTagTranslation = getCamToTag(unloggableInputs.unreadResults);
+    unloggableInputs.latestResult = camera.getLatestResult();
+    unloggableInputs.latestEstimatedPose = updatePoseEstimator(unloggableInputs.latestResult);
+    loggableInputs.latestCamToTagTranslation = getCamToTag(unloggableInputs.latestResult);
   }
 
-  public Optional<EstimatedRobotPose> updatePoseEstimator(List<PhotonPipelineResult> results) {
-    Optional<EstimatedRobotPose> latestEstimatedPose = Optional.empty();
-    for (PhotonPipelineResult result : results) {
-      Optional<EstimatedRobotPose> updatedPose = poseEstimator.update(result);
-      latestEstimatedPose = !updatedPose.isEmpty() ? updatedPose : latestEstimatedPose;
-    }
-    return latestEstimatedPose;
+  public Optional<EstimatedRobotPose> updatePoseEstimator(PhotonPipelineResult result) {
+    return poseEstimator.update(result);
   }
 
-  public Transform3d getCamToTag(List<PhotonPipelineResult> results) {
-    Transform3d camToTag = null;
-    for (PhotonPipelineResult result : results) {
-      if (result.hasTargets()) {
-        camToTag = result.getBestTarget().getBestCameraToTarget();
-      }
+  public Transform3d getCamToTag(PhotonPipelineResult result) {
+    Transform3d camToTag = new Transform3d();
+    if (result.hasTargets()) {
+      camToTag = result.getBestTarget().getBestCameraToTarget();
     }
     return camToTag;
   }

@@ -17,7 +17,7 @@ public interface AprilTagVisionIO {
 
   // Autolog doesn't work on these types
   public static class UnloggableAprilTagVisionIOInputs {
-    public List<PhotonPipelineResult> unreadResults = null;
+    public PhotonPipelineResult latestResult = null;
     public Optional<EstimatedRobotPose> latestEstimatedPose = Optional.empty();
   }
 
