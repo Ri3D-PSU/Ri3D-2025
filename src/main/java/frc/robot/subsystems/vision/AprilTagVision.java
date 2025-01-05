@@ -26,6 +26,18 @@ public class AprilTagVision extends SubsystemBase {
     return io.autoTranslateX();
   }
 
+  public double autoTranslateY() {
+    return io.autoTranslateY();
+  }
+
+  public boolean hasTarget() {
+    return io.hasTarget();
+  }
+
+  public double getArea() {
+    return io.getArea();
+  }
+
   public void periodic() {
     updateInputs();
   }
