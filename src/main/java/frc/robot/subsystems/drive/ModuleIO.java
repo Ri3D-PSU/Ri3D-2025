@@ -42,6 +42,8 @@ public interface ModuleIO {
   public default void setDriveVoltage(double volts) {
   }
 
+  public default double getDriveVoltage() {return 0;}
+
   /** Run the turn motor at the specified voltage. */
   public default void setTurnVoltage(double volts) {}
 

@@ -193,6 +193,11 @@ public class ModuleIOSparkMax implements ModuleIO {
   }
 
   @Override
+  public double getDriveVoltage() {
+    return driveSparkMax.getAppliedOutput() * driveSparkMax.getBusVoltage();
+  }
+
+  @Override
   public void setTurnVoltage(double volts) {
     turnSparkMax.setVoltage(volts);
   }

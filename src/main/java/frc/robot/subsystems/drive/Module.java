@@ -152,6 +152,10 @@ public class Module {
     speedSetpoint = null;
   }
 
+  public double getDriveVoltage() {
+    return io.getDriveVoltage();
+  }
+
   /** Disables all outputs to motors. */
   public void stop() {
     io.setTurnVoltage(0.0);
