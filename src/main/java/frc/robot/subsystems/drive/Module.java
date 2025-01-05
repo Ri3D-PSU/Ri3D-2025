@@ -143,11 +143,11 @@ public class Module {
   public void runCharacterization(double volts) {
     // Closed loop turn control
     angleSetpoint = new Rotation2d();
+  }
 
     // Open loop drive control
   public void setDriveVoltage(double volts){
     io.setDriveVoltage(accelLimiter.calculate(volts));
-   }
     //io.setDriveVoltage(volts);{}
     speedSetpoint = null;
   }
