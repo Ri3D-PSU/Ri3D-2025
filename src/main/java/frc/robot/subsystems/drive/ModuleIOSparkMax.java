@@ -94,6 +94,7 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnRelativeEncoder = turnSparkMax.getEncoder();
     // turnAbsoluteEncoder.setZeroOffset(0.0); // Set the correct offset
     turnAbsoluteEncoder.setInverted(false); // Invert if necessary
+    turnAbsoluteEncoder.setPositionConversionFactor(0);
 
     turnSparkMax.setInverted(isTurnMotorInverted);
     driveSparkMax.setSmartCurrentLimit(40);
@@ -139,6 +140,12 @@ public class ModuleIOSparkMax implements ModuleIO {
                     return OptionalDouble.empty();
                   }
                 });
+
+    // var turnPidController = turnSparkMax.getPIDController();
+    // turnPidController.setFeedbackDevice(turnAbsoluteEncoder);
+    // turnPidController.setP(0.75);
+    // turnPidController.setI(0);
+    // turnPidController.setD(0.005);
 
     driveSparkMax.burnFlash();
     turnSparkMax.burnFlash();
@@ -198,10 +205,5 @@ public class ModuleIOSparkMax implements ModuleIO {
   @Override
   public void setTurnBrakeMode(boolean enable) {
     turnSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
-  }
-
-  @Override
-  public double getAngleAbsolute() {
-    return turnAbsoluteEncoder.getPosition();
   }
 }
