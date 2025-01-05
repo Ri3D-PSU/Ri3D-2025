@@ -39,11 +39,10 @@ public class Module {
   private Rotation2d turnRelativeOffset = null; // Relative + Offset = Absolute
   private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
-    private double pidModuleTarget;
-    SlewRateLimiter accelLimiter = new SlewRateLimiter(20);
-    SlewRateLimiter deaccelLimiter = new SlewRateLimiter(11);
-    SlewRateLimiter voltLimiter = new SlewRateLimiter(99999);
-
+  private double pidModuleTarget;
+  SlewRateLimiter accelLimiter = new SlewRateLimiter(20);
+  SlewRateLimiter deaccelLimiter = new SlewRateLimiter(11);
+  SlewRateLimiter voltLimiter = new SlewRateLimiter(99999);
 
   public Module(ModuleIO io, int index) {
     this.io = io;
@@ -145,10 +144,10 @@ public class Module {
     angleSetpoint = new Rotation2d();
   }
 
-    // Open loop drive control
-  public void setDriveVoltage(double volts){
+  // Open loop drive control
+  public void setDriveVoltage(double volts) {
     io.setDriveVoltage(accelLimiter.calculate(volts));
-    //io.setDriveVoltage(volts);{}
+    // io.setDriveVoltage(volts);{}
     speedSetpoint = null;
   }
 
