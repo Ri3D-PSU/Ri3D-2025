@@ -143,7 +143,7 @@ public class RobotContainer {
                 () -> controller.getLeftX(),
                 () -> -vision.autoRotate()));
     controller
-        .b()
+        .start()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -154,8 +154,11 @@ public class RobotContainer {
     controller
         .y()
         .whileTrue(
-            Drive.drive(drive, () -> 0, () -> vision.autoTranslateX(), () -> -vision.autoRotate()));
-    controller.start().onTrue(drive.resetGyroCommand());
+            Drive.drive(
+                drive,
+                () -> vision.autoTranslateY(),
+                () -> vision.autoTranslateX(),
+                () -> -vision.autoRotate()));
   }
 
   /**

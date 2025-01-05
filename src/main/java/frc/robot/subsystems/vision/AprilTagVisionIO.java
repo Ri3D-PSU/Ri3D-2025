@@ -13,6 +13,8 @@ public interface AprilTagVisionIO {
     public double[] ntPose = {0, 0, 0, 0, 0, 0};
     public double ntYaw = 0;
     public double ntX = 0;
+    public double ntY = 0;
+    public boolean hasTarget = false;
     public Transform3d latestCamToTagTranslation = new Transform3d();
   }
 
@@ -41,13 +43,17 @@ public interface AprilTagVisionIO {
     return 0;
   }
 
-  // public default double getyaw() {
-  //   return 0;
-  // }
+  public default double autoTranslateY() {
+    return 0;
+  }
 
-  // public default double getTranslateX() {
-  //   return 0;
-  // }
+  public default boolean hasTarget() {
+    return false;
+  }
+
+  public default double getArea() {
+    return 0;
+  }
 
   public default Transform3d getCamToTag(List<PhotonPipelineResult> results) {
     return new Transform3d();
