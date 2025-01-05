@@ -141,12 +141,6 @@ public class ModuleIOSparkMax implements ModuleIO {
                   }
                 });
 
-    // var turnPidController = turnSparkMax.getPIDController();
-    // turnPidController.setFeedbackDevice(turnAbsoluteEncoder);
-    // turnPidController.setP(0.75);
-    // turnPidController.setI(0);
-    // turnPidController.setD(0.005);
-
     driveSparkMax.burnFlash();
     turnSparkMax.burnFlash();
   }

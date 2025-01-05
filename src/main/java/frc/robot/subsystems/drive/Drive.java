@@ -38,6 +38,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.subsystems.sysid.SwerveDriveSysidRoutine;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIO;
 import frc.robot.util.LocalADStarAK;
@@ -120,20 +121,14 @@ public class Drive extends SubsystemBase {
 
     // Configure SysId
     sysId =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(
-                null,
-                null,
-                null,
-                (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
-            new SysIdRoutine.Mechanism(
-                (voltage) -> {
-                  for (int i = 0; i < 4; i++) {
-                    modules[i].runCharacterization(voltage.in(Volts));
-                  }
-                },
-                null,
-                this));
+        new SwerveDriveSysidRoutine()
+            .createNewRoutine(
+                modules[0],
+                modules[1],
+                modules[2],
+                modules[3],
+                this,
+                new SysIdRoutine.Config(Volt.per(Second).of(0.5), Volt.of(8), Second.of(7)));
   }
 
   public void periodic() {
