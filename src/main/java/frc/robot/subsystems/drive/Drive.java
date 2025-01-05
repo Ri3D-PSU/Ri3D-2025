@@ -361,7 +361,18 @@ public class Drive extends SubsystemBase {
   }
 
   // public Command driveToTag() {
-  //   drive(this, null, null, null)
+
+  //   if (controller().y() == true && get.yaw == 0) {
+  //       Drive.drive(
+  //           drive,
+  //           () -> -1,
+  //           () -> 0,
+  //           () -> 0);
+  // } else {
+  //       Drive.drive(drive,0, 1, 1);
+
+  // Stop the robot if the PID value is not zero
+
   // }
 
   public Command resetGyroCommand() {

@@ -15,6 +15,7 @@ package frc.robot.subsystems.drive;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -37,6 +38,12 @@ public class Module {
   private Double speedSetpoint = null; // Setpoint for closed loop control, null for open loop
   private Rotation2d turnRelativeOffset = null; // Relative + Offset = Absolute
   private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
+
+    private double pidModuleTarget;
+    SlewRateLimiter accelLimiter = new SlewRateLimiter(20);
+    SlewRateLimiter deaccelLimiter = new SlewRateLimiter(11);
+    SlewRateLimiter voltLimiter = new SlewRateLimiter(99999);
+
 
   public Module(ModuleIO io, int index) {
     this.io = io;
@@ -96,7 +103,7 @@ public class Module {
         //
         // When the error is 90°, the velocity setpoint should be 0. As the wheel turns
         // towards the setpoint, its velocity should increase. This is achieved by
-        // taking the component of the velocity in the direction of the setpoint.
+        // taking the compFonent of the velocity in the direction of the setpoint.
         double adjustSpeedSetpoint = speedSetpoint * Math.cos(turnFeedback.getPositionError());
 
         // Run drive controller
@@ -138,7 +145,10 @@ public class Module {
     angleSetpoint = new Rotation2d();
 
     // Open loop drive control
-    io.setDriveVoltage(volts);
+  public void setDriveVoltage(double volts){
+    io.setDriveVoltage(accelLimiter.calculate(volts));
+   }
+    //io.setDriveVoltage(volts);{}
     speedSetpoint = null;
   }
 

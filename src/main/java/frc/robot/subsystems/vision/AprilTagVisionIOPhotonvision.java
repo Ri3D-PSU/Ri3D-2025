@@ -81,4 +81,14 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   public double autoTranslateX() {
     return -xPid.calculate(x.get(), 116);
   }
+
+  //   @Override
+  // public double getTranslateX() {
+  //   return -xPid.calculate(x.get(), 116);
+  // }
+
+  //   @Override
+  // public double getyaw() {
+  //   return -yaw.get();
+
 }

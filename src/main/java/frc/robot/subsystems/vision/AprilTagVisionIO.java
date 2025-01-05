@@ -41,6 +41,14 @@ public interface AprilTagVisionIO {
     return 0;
   }
 
+  // public default double getyaw() {
+  //   return 0;
+  // }
+
+  // public default double getTranslateX() {
+  //   return 0;
+  // }
+
   public default Transform3d getCamToTag(List<PhotonPipelineResult> results) {
     return new Transform3d();
   }
