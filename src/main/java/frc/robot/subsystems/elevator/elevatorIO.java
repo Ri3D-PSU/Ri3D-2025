@@ -6,6 +6,4 @@ public interface elevatorIO {
   double getPosition(); // Get the elevator's current position
 
   void resetEncoder();
-
 }
-
