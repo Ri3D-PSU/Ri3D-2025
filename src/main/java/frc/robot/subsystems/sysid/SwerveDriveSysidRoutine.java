@@ -46,9 +46,9 @@ public class SwerveDriveSysidRoutine {
         new SysIdRoutine.Mechanism(
             (Measure<Voltage> volts) -> {
               fl.setDriveVoltage(volts.in(Volts));
-              fr.setDriveVoltage(-volts.in(Volts));
+              fr.setDriveVoltage(volts.in(Volts));
               bl.setDriveVoltage(volts.in(Volts));
-              br.setDriveVoltage(-volts.in(Volts));
+              br.setDriveVoltage(volts.in(Volts));
             },
             log -> {
               log.motor("frontLeft")

@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.function.Function;
 
-public class CreateSysIdcommand {
+public class CreateSysIdCommand {
   public static Command createCommand(
       Function<SysIdRoutine.Direction, Command> quasistaticCommand,
       Function<SysIdRoutine.Direction, Command> dynamicCommand,

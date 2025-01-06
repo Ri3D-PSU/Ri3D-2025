@@ -14,24 +14,26 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
+import frc.robot.subsystems.sysid.CreateSysIdCommand;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIOPhotonvision;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -48,7 +50,10 @@ public class RobotContainer {
   private final CommandXboxController controller = new CommandXboxController(0);
 
   // Dashboard inputs
-  private final LoggedDashboardChooser<Command> autoChooser;
+  private static SendableChooser<Command> autoChooser;
+  private static SendableChooser<Command> sysidChooser = new SendableChooser<Command>();
+
+  static boolean sysIdInit = false;
 
   /** The container for the robot. Contains subsystems, IO devices, and commands. */
   public RobotContainer() {
@@ -93,20 +98,34 @@ public class RobotContainer {
         break;
     }
 
-    // Set up auto routines
-    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+    // add pathplanner autochooser
+    autoChooser = AutoBuilder.buildAutoChooser();
+    ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
+    autoTab.add(autoChooser).withSize(5, 5).withPosition(1, 1);
 
-    // Set up SysId routines
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    ShuffleboardTab sysidTab = Shuffleboard.getTab("Sysid");
+    sysidChooser.setDefaultOption("None!", new WaitCommand(0.1));
+    // sysidChooser.addOption("AnglerSysID",
+    // CreateSysidCommand.createCommand(targetingSubsystem::sysIdQuasistatic,
+    // targetingSubsystem::sysIdDynamic, "AnglerSysID", () -> controller.getHID().getAButton(), ()
+    // -> controller.getHID().getBButton()));
+    sysidChooser.addOption(
+        "SwerveSysID",
+        CreateSysIdCommand.createCommand(
+            drive::sysIdQuasistatic,
+            drive::sysIdDynamic,
+            "SwerveSysId",
+            controller,
+            () -> drive.stop()));
+
+    // sysidChooser.addOption("ShooterSysID",
+    //     CreateSysidCommand.createCommand(
+    //         shooterSubsystem::sysIdQuasistatic,
+    //         shooterSubsystem::sysIdDynamic,
+    //         "ShooterSysID", () -> controller.getHID().getAButton(), () ->
+    // controller.getHID().getBButton()));
+    sysidTab.add(sysidChooser).withSize(5, 5).withPosition(1, 1);
+    sysIdInit = true;
 
     // Configure the button bindings
     configureButtonBindings();
@@ -167,6 +186,10 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return new PathPlannerAuto("Example Auto");
+    return autoChooser.getSelected();
+  }
+
+  public static Command getSelectedSysid() {
+    return sysidChooser.getSelected();
   }
 }
