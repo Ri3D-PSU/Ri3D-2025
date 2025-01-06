@@ -4,10 +4,11 @@
 
 package frc.robot.subsystems.climber;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Climber extends SubsystemBase {
-  private final double LIFT_VOLTAGE = 10;
 
   private final ClimberIO io;
   private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
@@ -21,33 +22,18 @@ public class Climber extends SubsystemBase {
     io.setMotorVoltage(volts);
   }
 
-  public void turnMotorUntilAngle(double angle) {
-    turnMotorUntilAngle(LIFT_VOLTAGE, angle);
+  public double getMotorAngle() {
+    return inputs.motorAngle;
   }
 
-  public void turnMotorUntilAngle(double lift_voltage, double angle) {
-    if(inputs.motorAngle < angle) {
-      io.setMotorVoltage(lift_voltage);
-    } else {
-      io.setMotorVoltage(0);
-    }
-  }
-
-  public void turnMotorUntilCurrent(double current) {
-    turnMotorUntilCurrent(LIFT_VOLTAGE, current);
-  }
-  
-  public void turnMotorUntilCurrent(double lift_voltage, double current) {
-    if(inputs.motorCurrent < current) {
-      io.setMotorVoltage(lift_voltage);
-    } else {
-      io.setMotorVoltage(0);
-    }
+  public double getMotorCurrent() {
+    return inputs.motorCurrent;
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     io.updateInputs(inputs);
+    Logger.getInstance().processInputs("Climber", inputs);
   }
 }
