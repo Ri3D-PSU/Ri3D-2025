@@ -1,50 +1,96 @@
 package frc.robot.subsystems.elevator;
 
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
 public class elevator extends SubsystemBase {
-  private final CANSparkMax elevatorMotor;
-  private final RelativeEncoder elevatorEncoder;
 
-  // PID coefficients (for ltr)
+    private final elevatorIO io;
+    private final elevatorInputsAutoLogged inputs = new elevatorInputsAutoLogged();
 
-  // Elevator height limits (in encoder units)
-  private static final double kMinHeight = 0.0; // Bottom position
-  private static final double kMaxHeight = 100.0; // Top position
+    private final LoggedDashboardNumber elevatorStartPosition = new LoggedDashboardNumber("elevator Start Position", 0.0);
 
-  public elevator(int motorID) {
-    elevatorMotor = new CANSparkMax(0, MotorType.kBrushless);
-    elevatorEncoder = elevatorMotor.getEncoder();
+    private elevatorState state = elevatorState.IDLE;
+    private double targetPower = 0.0;
+    private double targetPosition = 0.0;
 
-    // Reset encoder to ensure starting position is zero
-    elevatorEncoder.setPosition(0.0);
-  }
+    // Constructor
+    public elevator(elevatorIO io) {
+        this.io = io;
+    }
 
-  public void goToPosition(double position) {
-    // Clamp the position to be within the height limits
-    double clampedPosition = Math.max(kMinHeight, Math.min(position, kMaxHeight));
-  }
+    // Define elevator states
+    public enum elevatorState {
+        IDLE,               // The elevator is stationary, no movement
+        MOVING_TO_POSITION, // The elevator is moving to a specific target position
+        AT_POSITION,        // The elevator is at the desired target position
+        MANUAL_CONTROL,     // The elevator is being manually controlled
+    }
 
-  public void resetPosition(double position) {
-    elevatorEncoder.setPosition(position);
-    System.out.println("Elevator position reset to: " + position);
-  }
+    // Method to set power for the elevator
+    public void setelevatorPower(double voltage) {
+        state = elevatorState.MOVING_TO_POSITION;
+        targetPower = voltage;
+    }
 
-  public double getPosition() {
-    return elevatorEncoder.getPosition();
-  }
+    // Method to stop the elevator
+    public void stopelevator() {
+        state = elevatorState.IDLE;
+        targetPower = 0.0;
+    }
 
-  public void stop() {
-    elevatorMotor.set(0);
-  }
+    // Set the elevator to its maximum position
+    public void setelevatorMax() {
+        state = elevatorState.MOVING_TO_POSITION;
+        targetPower = 0.5;  // Or use a max power value
+        targetPosition = 5.0;  // Example of target position
+    }
 
-  @Override
-  public void periodic() {
-    // Periodically log the elevator's position for debugging
-    System.out.println("Elevator Position: " + getPosition());
-  }
+    // Set the elevator to a specific position
+    public void setelevatorPosition(double position) {
+        state = elevatorState.MOVING_TO_POSITION;
+        targetPosition = position;
+    }
+
+    // Periodic method called in every cycle (e.g., 20ms)
+    @Override
+    public void periodic() {
+        switch (state) {
+            case IDLE:
+                io.setelevatorPower(0.0); // No power applied to the elevator
+                break;
+            case MOVING_TO_POSITION:
+                io.setelevatorPower(targetPower);
+                if (Math.abs(io.getelevatorPosition() - targetPosition) < 0.1) {  // Tolerance for stopping
+                    state = elevatorState.AT_POSITION;
+                }
+                break;
+            case AT_POSITION:
+                io.setelevatorPower(0.0); // Stop when at position
+                break;
+            case MANUAL_CONTROL:
+                // Implement manual control logic if needed
+                break;
+        }
+
+        // Log information for dashboard
+        Logger.getInstance().recordOutput("elevator State", state.toString());
+        Logger.getInstance().recordOutput("elevator Position", io.getelevatorPosition());
+        Logger.getInstance().recordOutput("elevator Velocity", io.getelevatorVelocity());
+    }
+
+    public double getelevatorPosition() {
+        return io.getelevatorPosition();
+    }
+
+    public double getelevatorVelocity() {
+        return io.getelevatorVelocity();
+    }
+
+    // Example of resetting the position 
+    public void resetelevatorPosition(double position) {
+        io.resetelevatorPosition(position);
+        elevatorStartPosition.set(position);
+    }
 }
