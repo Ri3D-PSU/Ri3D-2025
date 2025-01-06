@@ -1,8 +1,9 @@
 package frc.robot.subsystems.elevator;
 
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
+
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class elevator extends SubsystemBase {
@@ -16,7 +17,7 @@ public class elevator extends SubsystemBase {
   private static final double kMaxHeight = 100.0; // Top position
 
   public elevator(int motorID) {
-    elevatorMotor = new CANSparkMax(motorID, MotorType.kBrushless);
+    elevatorMotor = new CANSparkMax(0, MotorType.kBrushless);
     elevatorEncoder = elevatorMotor.getEncoder();
 
     // Reset encoder to ensure starting position is zero
