@@ -40,4 +40,10 @@ public interface IntakeIO {
   public default void setCoralIntakeVelocity(double velocity) {}
 
   public default void setCoralWristVelocity(double velocity) {}
+
+  public default void setCoralWristPosition(double position, double ffvoltage) {}
+
+    public default void adjustAngle(double angleRadians) {}
+
+    public default void wristAngle(double angleRadians) {}
 }

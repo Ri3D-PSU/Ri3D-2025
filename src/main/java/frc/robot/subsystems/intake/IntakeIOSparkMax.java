@@ -5,6 +5,9 @@ import static frc.robot.Constants.RPM_TO_RAD_PER_SEC;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.SparkMaxPIDController.ArbFFUnits;
+
+import frc.robot.subsystems.intake.IntakeIO.IntakeIOInputs;
 
 public class IntakeIOSparkMax implements IntakeIO {
   CANSparkMax primaryAlgaeIntake;
@@ -26,9 +29,7 @@ public class IntakeIOSparkMax implements IntakeIO {
     coralWrist.getEncoder().setPositionConversionFactor(1.0 / 20.0);
 
     primaryAlgaeIntake.getEncoder().setVelocityConversionFactor((1.0 / 5.0) * RPM_TO_RAD_PER_SEC);
-    secondaryAlgaeIntake
-        .getEncoder()
-        .setVelocityConversionFactor((1.0 / 20.0) * RPM_TO_RAD_PER_SEC);
+    secondaryAlgaeIntake.getEncoder().setVelocityConversionFactor((1.0 / 20.0) * RPM_TO_RAD_PER_SEC);
     coralIntake.getEncoder().setVelocityConversionFactor((1.0 / 5.0) * RPM_TO_RAD_PER_SEC);
     coralWrist.getEncoder().setVelocityConversionFactor((1.0 / 20.0) * RPM_TO_RAD_PER_SEC);
 
@@ -75,7 +76,7 @@ public class IntakeIOSparkMax implements IntakeIO {
   }
 
   @Override
-  public void updateInputs(IntakeInputs inputs) {
+  public void updateInputs(IntakeIOInputs inputs) {
     inputs.primaryAlgaeIntakeCurrent = primaryAlgaeIntake.getOutputCurrent();
     inputs.primaryAlgaeIntakeVoltage = primaryAlgaeIntake.getBusVoltage();
     inputs.primaryAlgaeIntakeVelocity = primaryAlgaeIntake.getEncoder().getVelocity();
@@ -120,4 +121,20 @@ public class IntakeIOSparkMax implements IntakeIO {
   public void setCoralWristVelocity(double velocity) {
     coralWrist.getPIDController().setReference(velocity, ControlType.kVelocity);
   }
+
+  
+  public void setCoralWristPosition(double position, double ffvoltage) {
+    coralWrist.getPIDController().setReference(position, CANSparkMax.ControlType.kPosition, 0,
+                ffvoltage, ArbFFUnits.kVoltage);
+  }
+
+  @Override
+    public void adjustAngle(double angleRadians) {
+        coralWrist.getEncoder().setPosition(coralWrist.getEncoder().getPosition() + angleRadians);
+    }
+
+    @Override
+    public void wristAngle(double angleRadians) {
+        coralWrist.getEncoder().setPosition(angleRadians);
+    }
 }

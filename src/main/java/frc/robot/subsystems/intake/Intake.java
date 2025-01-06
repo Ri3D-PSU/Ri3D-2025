@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
@@ -32,18 +33,30 @@ public class Intake extends SubsystemBase {
     Logger.getInstance().recordOutput("CoralWristTargetVelocity", velocity);
   }
 
+  private double targetPosition = 0.0;
+    private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.577, 0.0);
+
+  public void setWristPositionDegrees(double position) {
+    double targetPosition = Math.toRadians(position);
+}
+
+public double getTargetWristPosition() {
+    return targetPosition;
+}
+
   @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.getInstance().processInputs("Intake", inputs);
+
+    double wristffvoltage = feedforward.calculate(inputs.coralWristPosition, inputs.coralWristVelocity);
+        Logger.getInstance().recordOutput("ArmFFVoltage", wristffvoltage);
+
+        io.setCoralWristPosition(targetPosition, wristffvoltage);
   }
 
-  public double getPrimaryAlgaeIntakeVelocity() {
+  public double getAlgaeIntakeVelocity() {
     return inputs.primaryAlgaeIntakeVelocity;
-  }
-
-  public double getSecondaryAlgaeIntakeVelocity() {
-    return inputs.secondaryAlgaeIntakeVelocity;
   }
 
   public double getCoralIntakeVelocity() {
@@ -54,12 +67,8 @@ public class Intake extends SubsystemBase {
     return inputs.coralWristVoltage;
   }
 
-  public double getPrimaryAlgaeIntakeCurrent() {
+  public double getAlgaeIntakeCurrent() {
     return inputs.primaryAlgaeIntakeCurrent;
-  }
-
-  public double getSecondaryAlgaeIntakeCurrent() {
-    return inputs.secondaryAlgaeIntakeCurrent;
   }
 
   public double getCoralIntakeCurrent() {
@@ -69,4 +78,16 @@ public class Intake extends SubsystemBase {
   public double getCoralWristIntakeCurrent() {
     return inputs.coralWristCurrent;
   }
+
+  public double getWristPosition() {
+        return inputs.coralWristPosition;
+    }
+
+    public void adjustAngle(double degrees) {
+        io.adjustAngle(Math.toRadians(degrees));
+    }
+
+    public void resetAngle(double radians) {
+
+    }
 }
