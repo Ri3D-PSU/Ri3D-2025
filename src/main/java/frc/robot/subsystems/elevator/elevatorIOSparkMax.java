@@ -1,51 +1,49 @@
 package frc.robot.subsystems.elevator;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 
 public class elevatorIOSparkMax implements elevatorIO {
-    private final CANSparkMax batmanMotor;
-    private final CANSparkMax robinMotor;
-    private final RelativeEncoder batmanEncoder;
+    private final CANSparkMax leadMotor;
+    private final CANSparkMax followerMotor;
+    private final RelativeEncoder encoder;
 
     // Constructor
-    public elevatorIOSparkMax(int batmanMotorID, int robinMotorID) {
-        // Initialize the CANSparkMax motors for Batman (main) and Robin (follower)
-        batmanMotor = new CANSparkMax(batmanMotorID, MotorType.kBrushless);
-        robinMotor = new CANSparkMax(robinMotorID, MotorType.kBrushless);
+    public elevatorIOSparkMax(int leadMotorID, int followerMotorID) {
+        // Initialize the CANSparkMax motors for main and follower
+        leadMotor = new CANSparkMax(leadMotorID, MotorType.kBrushless);
+        followerMotor = new CANSparkMax(followerMotorID, MotorType.kBrushless);
 
-        // Invert Robin (follower motor)
-        robinMotor.setInverted(true);
+        // Invert follower
+        followerMotor.setInverted(true);
+        followerMotor.follow(leadMotor);
 
-        // Make Robin follow Batman motor
-        robinMotor.follow(batmanMotor);
-
-        // Initialize the encoder for Batman (main motor)
-        batmanEncoder = batmanMotor.getEncoder();
+        // Initialize the encoder for main
+        encoder = leadMotor.getEncoder();
     }
 
     @Override
-    public void setelevatorPower(double power) {
-        // Set the power to the main motor (Batman)
-        batmanMotor.set(power);
+    public void setPower(double power) {
+        // Set the power to the main motor
+        leadMotor.set(power);
     }
 
     @Override
-    public double getelevatorPosition() {
-        // Get the position from the encoder on the Batman motor
-        return batmanEncoder.getPosition();
+    public double getPosition() {
+        // Get the position from the encoder
+        return encoder.getPosition();
     }
 
     @Override
-    public double getelevatorVelocity() {
-        // Get the velocity from the encoder on the Batman motor
-        return batmanEncoder.getVelocity();
+    public double getVelocity() {
+        // Get the velocity from the encoder 
+        return encoder.getVelocity();
     }
 
     @Override
-    public void resetelevatorPosition(double position) {
+    public void resetPosition(double position) {
         // Reset the encoder to the specified position
-        batmanEncoder.setPosition(position);
+        encoder.setPosition(position);
     }
 }

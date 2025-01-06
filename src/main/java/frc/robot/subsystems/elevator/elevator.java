@@ -7,7 +7,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 public class elevator extends SubsystemBase {
 
     private final elevatorIO io;
-    private final elevatorInputsAutoLogged inputs = new elevatorInputsAutoLogged();
+    private final ElevatorIOInputsLogged inputs = new ElevatorIOInputsLogged();
 
     private final LoggedDashboardNumber elevatorStartPosition = new LoggedDashboardNumber("elevator Start Position", 0.0);
 
@@ -29,28 +29,32 @@ public class elevator extends SubsystemBase {
     }
 
     // Method to set power for the elevator
-    public void setelevatorPower(double voltage) {
+    public void setPower(double voltage) {
         state = elevatorState.MOVING_TO_POSITION;
         targetPower = voltage;
     }
 
     // Method to stop the elevator
-    public void stopelevator() {
+    public void stop() {
         state = elevatorState.IDLE;
         targetPower = 0.0;
     }
 
     // Set the elevator to its maximum position
-    public void setelevatorMax() {
+    public void setMax() {
         state = elevatorState.MOVING_TO_POSITION;
         targetPower = 0.5;  // Or use a max power value
         targetPosition = 5.0;  // Example of target position
     }
 
     // Set the elevator to a specific position
-    public void setelevatorPosition(double position) {
+    public void setPosition(double position) {
         state = elevatorState.MOVING_TO_POSITION;
         targetPosition = position;
+    }
+
+    public void updateInputs() {
+        io.updateInputs(inputs);
     }
 
     // Periodic method called in every cycle (e.g., 20ms)
@@ -58,16 +62,16 @@ public class elevator extends SubsystemBase {
     public void periodic() {
         switch (state) {
             case IDLE:
-                io.setelevatorPower(0.0); // No power applied to the elevator
+                io.setPower(0.0); // No power applied to the elevator
                 break;
             case MOVING_TO_POSITION:
-                io.setelevatorPower(targetPower);
-                if (Math.abs(io.getelevatorPosition() - targetPosition) < 0.1) {  // Tolerance for stopping
+                io.setPower(targetPower);
+                if (Math.abs(io.getPosition() - targetPosition) < 0.1) {  // Tolerance for stopping
                     state = elevatorState.AT_POSITION;
                 }
                 break;
             case AT_POSITION:
-                io.setelevatorPower(0.0); // Stop when at position
+                io.setPower(0.0); // Stop when at position
                 break;
             case MANUAL_CONTROL:
                 // Implement manual control logic if needed
@@ -75,22 +79,21 @@ public class elevator extends SubsystemBase {
         }
 
         // Log information for dashboard
-        Logger.getInstance().recordOutput("elevator State", state.toString());
-        Logger.getInstance().recordOutput("elevator Position", io.getelevatorPosition());
-        Logger.getInstance().recordOutput("elevator Velocity", io.getelevatorVelocity());
-    }
+    //     Logger.getInstance().recordOutput("elevator State", state.toString());
+    //     Logger.getInstance().recordOutput("elevator Position", io.getelevatorPosition());
+    //     Logger.getInstance().recordOutput("elevator Velocity", io.getelevatorVelocity());
+    // }
 
     public double getelevatorPosition() {
-        return io.getelevatorPosition();
+        return io.getPosition();
     }
 
     public double getelevatorVelocity() {
-        return io.getelevatorVelocity();
+        return io.getVelocity();
     }
 
-    // Example of resetting the position 
     public void resetelevatorPosition(double position) {
-        io.resetelevatorPosition(position);
+        io.resetPosition(position);
         elevatorStartPosition.set(position);
     }
 }
