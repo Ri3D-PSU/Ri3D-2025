@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.climber;
 
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
@@ -38,5 +40,17 @@ public class Climber extends SubsystemBase {
     // This method will be called once per scheduler run
     io.updateInputs(inputs);
     Logger.processInputs("Climber", inputs);
+  }
+
+  public static Command moveClimber(Climber climber) {
+    return Commands.runEnd(
+      () -> {
+        climber.setMotorVoltage(10);
+      },
+      () -> {
+        climber.stopMotor();
+      },
+      climber
+    );
   }
 }

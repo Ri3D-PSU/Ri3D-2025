@@ -23,6 +23,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIO;
+import frc.robot.subsystems.climber.ClimberIOSparkMax;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
@@ -43,6 +46,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final AprilTagVision vision;
+  private final Climber climber;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -56,6 +60,7 @@ public class RobotContainer {
       case REAL: // NAVX instead of pigeon
         // Real robot, instantiate hardware IO implementations
         vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
+        climber = new Climber(new ClimberIOSparkMax(-1));
         drive =
             new Drive(
                 new GyroIONavX(),
@@ -68,6 +73,7 @@ public class RobotContainer {
 
       case SIM:
         vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
+        climber = new Climber(new ClimberIO() {});
         // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
@@ -82,6 +88,7 @@ public class RobotContainer {
       default:
         vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         // Replayed robot, disable IO implementations
+        climber = new Climber(new ClimberIO() {});
         drive =
             new Drive(
                 new GyroIO() {},
@@ -159,6 +166,10 @@ public class RobotContainer {
                 () -> vision.autoTranslateY(),
                 () -> vision.autoTranslateX(),
                 () -> -vision.autoRotate()));
+    controller
+        .b()
+        .onTrue(Climber.moveClimber(climber).withTimeout(5));
+        // .whileTrue(Climber.moveClimber(climber));
   }
 
   /**
