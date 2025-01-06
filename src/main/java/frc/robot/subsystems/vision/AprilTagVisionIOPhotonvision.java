@@ -3,6 +3,9 @@ package frc.robot.subsystems.vision;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -17,6 +20,7 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 
 public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
@@ -81,11 +85,14 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
     return camToTag;
   }
 
+
+
   public double getXDistance() {
-    double distance =
+    double targetYaw = findTargetYaw();
+    double distance = 
         (REEF_TARGET - CAMERA_HEIGHT)
             / Math.tan(Units.degreesToRadians(CAMERA_PITCH + pitch.get()));
-    double x = distance * Units.degreesToRadians(yaw.get());
+    double x = distance * Math.cos(Units.degreesToRadians(targetYaw));
     return x;
   }
 

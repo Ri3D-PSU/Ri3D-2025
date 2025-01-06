@@ -23,7 +23,9 @@ import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -38,14 +40,21 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIO;
 import frc.robot.util.LocalADStarAK;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.PhotonUtils;
 
 public class Drive extends SubsystemBase {
   private static final double DEADBAND = 0.1;
@@ -76,6 +85,18 @@ public class Drive extends SubsystemBase {
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
 
   private final AprilTagVision aprilTagVision;
+  
+  public AprilTagFieldLayout declareFieldLayout() {
+    try {
+        // Code that might throw an exception
+        Path layoutFilePath = Paths.get("src/java/drive/2025-reefscape.json");
+        return new AprilTagFieldLayout(layoutFilePath); 
+    } catch (IOException e) {
+        // Handle the exception if it occurs
+        System.err.println("An error occurred while handling the file: " + e.getMessage());
+    }
+    return null;  // Return null if an exception was caught
+}
 
   public Drive(
       GyroIO gyroIO,
@@ -283,6 +304,31 @@ public class Drive extends SubsystemBase {
   /** Resets the current odometry pose. */
   public void setPose(Pose2d pose) {
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+  }
+
+  public Pose2d convertPose3dToPose2d(Pose3d pose3d) {
+    // Get the x and y position from Pose3d
+    double x = pose3d.getX();
+    double y = pose3d.getY();
+    
+    // Get the yaw (Z-axis rotation) from the 3D rotation (Rotation3d) and convert it to Rotation2d
+    Rotation3d rotation3d = pose3d.getRotation();
+    Rotation2d rotation2d = new Rotation2d(rotation3d.getZ());
+
+    // Create and return a new Pose2d with the x, y, and Rotation2d
+    return new Pose2d(x, y, rotation2d);
+}
+
+  public Rotation2d findTargetYaw() {
+    Pose2d robotPose = getPose();
+    AprilTagFieldLayout fieldLayout = declareFieldLayout();
+    Optional<Pose3d> poseOp = fieldLayout.getTagPose(1);
+    Pose3d tagPose3d = poseOp.get();
+
+    Pose2d targetPose2d = convertPose3dToPose2d(tagPose3d);
+
+    Rotation2d targetYaw = PhotonUtils.getYawToPose(robotPose, targetPose2d);
+    return targetYaw;
   }
 
   /**
