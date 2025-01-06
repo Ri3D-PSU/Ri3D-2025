@@ -20,7 +20,6 @@ import org.photonvision.targeting.PhotonPipelineResult;
 
 public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   private final String CAMERA_NAME = "Camera_Module_v1";
-  private LoggableAprilTagVisionIOInputs loggableInputs = new LoggableAprilTagVisionIOInputs();
   PIDController pid = new PIDController(0.2, 0, 0);
   private final AprilTagFieldLayout APRILTAGFIELDLAYOUT =
       AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
