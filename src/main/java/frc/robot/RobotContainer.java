@@ -14,6 +14,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -28,6 +29,8 @@ import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
+import frc.robot.subsystems.vision.AprilTagVision;
+import frc.robot.subsystems.vision.AprilTagVisionIOPhotonvision;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -39,6 +42,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final AprilTagVision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -51,9 +55,11 @@ public class RobotContainer {
     switch (Constants.currentMode) {
       case REAL: // NAVX instead of pigeon
         // Real robot, instantiate hardware IO implementations
+        vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         drive =
             new Drive(
                 new GyroIONavX(),
+                new AprilTagVisionIOPhotonvision(),
                 new ModuleIOSparkMax(0),
                 new ModuleIOSparkMax(1),
                 new ModuleIOSparkMax(2),
@@ -61,10 +67,12 @@ public class RobotContainer {
         break;
 
       case SIM:
+        vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
                 new GyroIO() {},
+                new AprilTagVisionIOPhotonvision(),
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim(),
@@ -72,10 +80,12 @@ public class RobotContainer {
         break;
 
       default:
+        vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         // Replayed robot, disable IO implementations
         drive =
             new Drive(
                 new GyroIO() {},
+                new AprilTagVisionIOPhotonvision(),
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {},
@@ -110,22 +120,30 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     drive.setDefaultCommand(
-        Drive.joystickDrive(
+        Drive.drive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
+            () -> controller.getLeftY(),
+            () -> controller.getLeftX(),
             () -> -controller.getRightX()));
     controller
         .leftBumper()
         .whileTrue(
-            Drive.joystickDriveSlow(
+            Drive.drive(
                 drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> -controller.getRightX()));
+                () -> controller.getLeftY() * 0.1,
+                () -> controller.getLeftX() * 0.1,
+                () -> -controller.getRightX() * 0.25));
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
     controller
-        .b()
+        .a()
+        .whileTrue(
+            Drive.drive(
+                drive,
+                () -> controller.getLeftY(),
+                () -> controller.getLeftX(),
+                () -> -vision.autoRotate()));
+    controller
+        .start()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -133,7 +151,14 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
-    controller.start().onTrue(drive.resetGyroCommand());
+    controller
+        .y()
+        .whileTrue(
+            Drive.drive(
+                drive,
+                () -> vision.autoTranslateY(),
+                () -> vision.autoTranslateX(),
+                () -> -vision.autoRotate()));
   }
 
   /**
@@ -142,6 +167,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.get();
+    return new PathPlannerAuto("Example Auto");
   }
 }
