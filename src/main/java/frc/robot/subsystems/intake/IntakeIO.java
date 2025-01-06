@@ -4,7 +4,7 @@ import org.littletonrobotics.junction.AutoLog;
 
 public interface IntakeIO {
   @AutoLog
-  public static class IntakeInputs {
+  public static class IntakeIOInputs {
     public double primaryAlgaeIntakeVoltage = 0.0;
     public double primaryAlgaeIntakeCurrent = 0.0;
     public double primaryAlgaeIntakeVelocity = 0.0;
@@ -31,7 +31,7 @@ public interface IntakeIO {
   }
 
   /** Updates the set of loggable inputs. */
-  public default void updateInputs(IntakeInputs inputs) {}
+  public default void updateInputs(IntakeIOInputs inputs) {}
 
   public default void setPrimaryAlgaeIntakeVelocity(double velocity) {}
 
