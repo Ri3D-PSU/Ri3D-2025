@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.climber.Climber;
@@ -126,21 +127,29 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+
+    //Field centric swerve drive
     drive.setDefaultCommand(
         Drive.drive(
             drive,
             () -> controller.getLeftY(),
             () -> controller.getLeftX(),
             () -> -controller.getRightX()));
+
+    //Slowed field centric swerve drive
     controller
         .leftBumper()
         .whileTrue(
             Drive.drive(
                 drive,
-                () -> controller.getLeftY() * 0.1,
-                () -> controller.getLeftX() * 0.1,
+                () -> controller.getLeftY() * 0.25,
+                () -> controller.getLeftX() * 0.25,
                 () -> -controller.getRightX() * 0.25));
+
+    //Point wheels in x formation to stop
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+
+    //Point robot to april tag
     controller
         .a()
         .whileTrue(
@@ -149,6 +158,18 @@ public class RobotContainer {
                 () -> controller.getLeftY(),
                 () -> controller.getLeftX(),
                 () -> -vision.autoRotate()));
+
+    //Align robot to april tag
+    controller
+        .y()
+        .whileTrue(
+            Drive.drive(
+                drive,
+                () -> vision.autoTranslateY(),
+                () -> vision.autoTranslateX(),
+                () -> -vision.autoRotate()));
+
+    //Reset gyro
     controller
         .start()
         .onTrue(
@@ -158,20 +179,17 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
-    controller
-        .y()
-        .whileTrue(
-            Drive.drive(
-                drive,
-                () -> vision.autoTranslateY(),
-                () -> vision.autoTranslateX(),
-                () -> -vision.autoRotate()));
+
+    //Climber command
+    Command climbCommand = new StartEndCommand(
+      () -> climber.setMotorVoltage(12), () -> climber.stopMotor(), climber);
+
     controller
         .b()
-        .onTrue(Climber.moveClimber(climber).withTimeout(5));
+        .onTrue(climbCommand.withTimeout(5));
     // controller
     //     .b()
-    //     .whileTrue(Climber.moveClimber(climber));
+    //     .whileTrue(climbCommand);
   }
 
   /**

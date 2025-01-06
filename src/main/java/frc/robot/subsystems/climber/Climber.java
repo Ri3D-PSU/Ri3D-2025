@@ -41,15 +41,4 @@ public class Climber extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Climber", inputs);
   }
-
-  public static Command moveClimber(Climber climber) {
-    return Commands.runEnd(
-        () -> {
-          climber.setMotorVoltage(10);
-        },
-        () -> {
-          climber.stopMotor();
-        },
-        climber);
-  }
 }
