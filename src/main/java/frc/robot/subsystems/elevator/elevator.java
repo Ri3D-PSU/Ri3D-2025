@@ -16,7 +16,7 @@ public class elevator extends SubsystemBase {
   private static final double kMaxHeight = 100.0; // Top position
 
   public elevator(int motorID) {
-    elevatorMotor = new CANSparkMax(motorID, MotorType.kBrushless);
+    elevatorMotor = 
     elevatorEncoder = elevatorMotor.getEncoder();
 
     // Reset encoder to ensure starting position is zero
