@@ -44,13 +44,12 @@ public class Climber extends SubsystemBase {
 
   public static Command moveClimber(Climber climber) {
     return Commands.runEnd(
-      () -> {
-        climber.setMotorVoltage(10);
-      },
-      () -> {
-        climber.stopMotor();
-      },
-      climber
-    );
+        () -> {
+          climber.setMotorVoltage(10);
+        },
+        () -> {
+          climber.stopMotor();
+        },
+        climber);
   }
 }
