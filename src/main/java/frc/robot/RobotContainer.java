@@ -246,7 +246,7 @@ public class RobotContainer {
         new RunCommand(() -> intake.wristAngle(PROCESSOR_ANGLE), intake);
     ParallelCommandGroup processorCommandGroup =
         new ParallelCommandGroup(liftToProcessorCommand, wristToProcessorCommand);
-    operatorController.povRight().onTrue(processorCommandGroup);
+    operatorController.povDown().onTrue(processorCommandGroup);
 
     // Source state
     Command liftToSourceCommand =
