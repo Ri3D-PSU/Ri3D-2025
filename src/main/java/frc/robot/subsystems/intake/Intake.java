@@ -2,7 +2,6 @@ package frc.robot.subsystems.intake;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
 
@@ -28,15 +27,13 @@ public class Intake extends SubsystemBase {
     double targetPosition = Math.toRadians(position);
   }
 
-public double getTargetWristPosition() {
+  public double getTargetWristPosition() {
     return targetPosition;
-}
+  }
 
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    double wristffvoltage = feedforward.calculate(inputs.coralWristPosition, inputs.coralWristVelocity);
-    io.setCoralWristPosition(targetPosition, wristffvoltage);
   }
 
   public double getCoralWristIntakeCurrent() {
@@ -44,14 +41,17 @@ public double getTargetWristPosition() {
   }
 
   public double getWristPosition() {
-        return inputs.coralWristPosition;
-    }
+    return inputs.coralWristPosition;
+  }
 
-    public void adjustAngle(double degrees) {
-        io.adjustAngle(Math.toRadians(degrees));
-    }
+  public void wristAngle(double position) {
+    io.wristAngle(position);
+  }
 
-    public void resetAngle(double radians) {
+  public void setWristVoltage(double voltage) {
+    System.out.println(getWristPosition());
+    io.setWristVoltage(voltage);
+  }
 
-    }
+  public void resetAngle(double radians) {}
 }
