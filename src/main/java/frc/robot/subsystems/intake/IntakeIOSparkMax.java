@@ -1,13 +1,9 @@
 package frc.robot.subsystems.intake;
 
-import static frc.robot.Constants.RPM_TO_RAD_PER_SEC;
-
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.SparkPIDController.ArbFFUnits;
-
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import frc.robot.subsystems.intake.IntakeIO.IntakeIOInputs;
 
 public class IntakeIOSparkMax implements IntakeIO {
@@ -15,34 +11,30 @@ public class IntakeIOSparkMax implements IntakeIO {
   CANSparkMax algaeMotor2;
   CANSparkMax coralIntake;
   CANSparkMax coralWrist;
+  RelativeEncoder wristEncoder;
 
   public IntakeIOSparkMax() {
     // find actual motor IDs
-    algaeMotor1 = new CANSparkMax(0, MotorType.kBrushless);
-    algaeMotor2 = new CANSparkMax(0, MotorType.kBrushless);
-    coralIntake = new CANSparkMax(0, MotorType.kBrushless);
-    coralWrist = new CANSparkMax(0, MotorType.kBrushless);
+    algaeMotor1 = new CANSparkMax(17, MotorType.kBrushless);
+    algaeMotor2 = new CANSparkMax(27, MotorType.kBrushless);
+    coralIntake = new CANSparkMax(15, MotorType.kBrushless);
+    coralWrist = new CANSparkMax(16, MotorType.kBrushless); // dont have yet
 
     // ask about gear ratios for all motors
-    coralWrist.getEncoder().setPositionConversionFactor(1.0 / 20.0);
-    coralWrist.getEncoder().setVelocityConversionFactor((1.0 / 20.0) * RPM_TO_RAD_PER_SEC);
-    coralWrist.enableVoltageCompensation(10.0);
+    wristEncoder = coralWrist.getEncoder();
 
-    algaeMotor1.setSmartCurrentLimit(30);
-    algaeMotor2.setSmartCurrentLimit(30);
-    coralIntake.setSmartCurrentLimit(30);
-    coralWrist.setSmartCurrentLimit(30);
+    algaeMotor1.restoreFactoryDefaults();
+    algaeMotor2.restoreFactoryDefaults();
 
-    coralWrist.getPIDController().setP(0.4);
-    coralWrist.getPIDController().setI(0.0001);
+    algaeMotor1.setSmartCurrentLimit(15);
+    algaeMotor2.setSmartCurrentLimit(15);
+    coralIntake.setSmartCurrentLimit(15);
+    coralWrist.setSmartCurrentLimit(40);
+
+    coralWrist.getPIDController().setP(0.55);
+    coralWrist.getPIDController().setI(0);
     coralWrist.getPIDController().setD(0.0);
-    coralWrist.getPIDController().setFF(0);
-
-    algaeMotor2.follow(algaeMotor1);
-
-    algaeMotor1.setInverted(true);
-    coralIntake.setInverted(true);
-    coralWrist.setInverted(true);
+    coralWrist.getPIDController().setFF(0.00375);
 
     algaeMotor1.setIdleMode(IdleMode.kBrake);
     algaeMotor2.setIdleMode(IdleMode.kBrake);
@@ -65,25 +57,32 @@ public class IntakeIOSparkMax implements IntakeIO {
   @Override
   public void setAlgaeVoltage(double voltage) {
     algaeMotor1.setVoltage(voltage);
+    algaeMotor2.setVoltage(-voltage);
   }
 
   @Override
   public void setCoralIntakeVoltage(double voltage) {
     coralIntake.setVoltage(voltage);
   }
-  
-  public void setCoralWristPosition(double position, double ffvoltage) {
-    coralWrist.getPIDController().setReference(position, CANSparkMax.ControlType.kPosition, 0,
-                ffvoltage, ArbFFUnits.kVoltage);
+
+  @Override
+  public void adjustAngle(double angleRadians) {
+    coralWrist.getEncoder().setPosition(coralWrist.getEncoder().getPosition() + angleRadians);
   }
 
   @Override
-    public void adjustAngle(double angleRadians) {
-        coralWrist.getEncoder().setPosition(coralWrist.getEncoder().getPosition() + angleRadians);
-    }
+  public void wristAngle(double position) {
+    coralWrist.getPIDController().setReference(position, CANSparkMax.ControlType.kPosition);
+  }
 
-    @Override
-    public void wristAngle(double angleRadians) {
-        coralWrist.getEncoder().setPosition(angleRadians);
-    }
+  @Override
+  public double getWristPosition() {
+    return wristEncoder.getPosition();
+  }
+
+  @Override
+  public void setWristVoltage(double voltage) {
+    System.out.println("Wrist position: " + getWristPosition());
+    coralWrist.set(voltage);
+  }
 }
