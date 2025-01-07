@@ -12,6 +12,7 @@ public interface AprilTagVisionIO {
   public static class LoggableAprilTagVisionIOInputs {
     public double[] ntPose = {0, 0, 0, 0, 0, 0};
     public double ntYaw = 0;
+    public boolean hasTargets;
     public Transform3d latestCamToTagTranslation = new Transform3d();
   }
 

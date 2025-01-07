@@ -34,6 +34,10 @@ public class AprilTagVision extends SubsystemBase {
     return unloggableInputs.latestEstimatedPose;
   }
 
+  public boolean hasTargets() {
+    return loggableInputs.hasTargets;
+  }
+
   public Transform3d getCamToTag() {
     return loggableInputs.latestCamToTagTranslation;
   }

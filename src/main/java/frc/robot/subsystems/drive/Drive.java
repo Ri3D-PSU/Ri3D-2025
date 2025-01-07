@@ -76,8 +76,6 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
 
-  private final AprilTagVision aprilTagVision;
-
   public Drive(
       GyroIO gyroIO,
       AprilTagVisionIO aprilTagVisionIO,
@@ -87,7 +85,6 @@ public class Drive extends SubsystemBase {
       ModuleIO brModuleIO) {
     this.gyroIO = gyroIO;
     gyro = new Gyro(gyroIO);
-    aprilTagVision = new AprilTagVision(aprilTagVisionIO);
     modules[0] = new Module(flModuleIO, 0);
     modules[1] = new Module(frModuleIO, 1);
     modules[2] = new Module(blModuleIO, 2);
@@ -413,6 +410,7 @@ public class Drive extends SubsystemBase {
 
   public static Command driveFacingAprilTag(
       Drive drive,
+      AprilTagVision vision,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
@@ -443,11 +441,11 @@ public class Drive extends SubsystemBase {
               DriverStation.getAlliance().isPresent()
                   && DriverStation.getAlliance().get() == Alliance.Red;
 
-          if (!(drive.aprilTagVision.getCamToTag() == null)) {
+          if (vision.hasTargets()) {
             Transform2d cameraToTarget =
                 new Transform2d(
-                    drive.aprilTagVision.getCamToTag().getTranslation().toTranslation2d(),
-                    drive.aprilTagVision.getCamToTag().getRotation().toRotation2d());
+                    vision.getCamToTag().getTranslation().toTranslation2d(),
+                    vision.getCamToTag().getRotation().toRotation2d());
 
             double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
             omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
@@ -467,6 +465,7 @@ public class Drive extends SubsystemBase {
 
   public static Command driveToAprilTag(
       Drive drive,
+      AprilTagVision vision,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
@@ -499,11 +498,11 @@ public class Drive extends SubsystemBase {
               DriverStation.getAlliance().isPresent()
                   && DriverStation.getAlliance().get() == Alliance.Red;
 
-          if (!(drive.aprilTagVision.getCamToTag() == null)) {
+          if (vision.hasTargets()) {
             Transform2d cameraToTarget =
                 new Transform2d(
-                    drive.aprilTagVision.getCamToTag().getTranslation().toTranslation2d(),
-                    drive.aprilTagVision.getCamToTag().getRotation().toRotation2d());
+                    vision.getCamToTag().getTranslation().toTranslation2d(),
+                    vision.getCamToTag().getRotation().toRotation2d());
 
             double photonvisionCameraAngle = cameraToTarget.getRotation().getRadians();
             double robotToTagAngleDifference =
