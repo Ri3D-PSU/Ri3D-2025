@@ -30,8 +30,8 @@ public class AprilTagVision extends SubsystemBase {
     return io.autoTranslateY();
   }
 
-  public boolean hasTarget() {
-    return io.hasTarget();
+  public boolean hasTargets() {
+    return loggableInputs.hasTargets;
   }
 
   public double getArea() {

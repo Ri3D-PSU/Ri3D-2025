@@ -63,8 +63,8 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
     loggableInputs.ntYaw = yaw.get();
     loggableInputs.ntX = x.get();
     loggableInputs.ntY = y.get();
-    loggableInputs.hasTarget = hasTarget.get();
     unloggableInputs.latestResult = camera.getLatestResult();
+    loggableInputs.hasTargets = unloggableInputs.latestResult.hasTargets();
     unloggableInputs.latestEstimatedPose = updatePoseEstimator(unloggableInputs.latestResult);
     loggableInputs.latestCamToTagTranslation = getCamToTag(unloggableInputs.latestResult);
   }
@@ -116,7 +116,7 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   }
 
   @Override
-  public boolean hasTarget() {
+  public boolean hasTargets() {
     return hasTarget.get();
   }
 
