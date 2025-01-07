@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -33,6 +34,9 @@ import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeIOSparkMax;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIOPhotonvision;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -48,9 +52,10 @@ public class RobotContainer {
   private final Drive drive;
   private final AprilTagVision vision;
   private final Climber climber;
+  private final Intake intake;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController driverController = new CommandXboxController(0);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -61,7 +66,8 @@ public class RobotContainer {
       case REAL: // NAVX instead of pigeon
         // Real robot, instantiate hardware IO implementations
         vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
-        climber = new Climber(new ClimberIOSparkMax(-1));
+        climber = new Climber(new ClimberIOSparkMax());
+        intake = new Intake(new IntakeIOSparkMax());
         drive =
             new Drive(
                 new GyroIONavX(),
@@ -75,6 +81,7 @@ public class RobotContainer {
       case SIM:
         vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         climber = new Climber(new ClimberIO() {});
+        intake = new Intake(new IntakeIO() {});
         // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
@@ -90,6 +97,7 @@ public class RobotContainer {
         vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         // Replayed robot, disable IO implementations
         climber = new Climber(new ClimberIO() {});
+        intake = new Intake(new IntakeIO() {});
         drive =
             new Drive(
                 new GyroIO() {},
@@ -132,35 +140,35 @@ public class RobotContainer {
     drive.setDefaultCommand(
         Drive.drive(
             drive,
-            () -> controller.getLeftY(),
-            () -> controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> driverController.getLeftY(),
+            () -> driverController.getLeftX(),
+            () -> -driverController.getRightX()));
 
-    // Slowed field centric swerve drive
-    controller
+    //Slowed field centric swerve drive
+    driverController
         .leftBumper()
         .whileTrue(
             Drive.drive(
                 drive,
-                () -> controller.getLeftY() * 0.25,
-                () -> controller.getLeftX() * 0.25,
-                () -> -controller.getRightX() * 0.25));
+                () -> driverController.getLeftY() * 0.25,
+                () -> driverController.getLeftX() * 0.25,
+                () -> -driverController.getRightX() * 0.25));
 
-    // Point wheels in x formation to stop
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    //Point wheels in x formation to stop
+    driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Point robot to april tag
-    controller
+    //Point robot to april tag
+    driverController
         .a()
         .whileTrue(
             Drive.drive(
                 drive,
-                () -> controller.getLeftY(),
-                () -> controller.getLeftX(),
+                () -> driverController.getLeftY(),
+                () -> driverController.getLeftX(),
                 () -> -vision.autoRotate()));
 
-    // Align robot to april tag
-    controller
+    //Align robot to april tag
+    driverController
         .y()
         .whileTrue(
             Drive.drive(
@@ -169,8 +177,8 @@ public class RobotContainer {
                 () -> vision.autoTranslateX(),
                 () -> -vision.autoRotate()));
 
-    // Reset gyro
-    controller
+    //Reset gyro
+    driverController
         .start()
         .onTrue(
             Commands.runOnce(
@@ -184,10 +192,24 @@ public class RobotContainer {
     Command climbCommand =
         new StartEndCommand(() -> climber.setMotorVoltage(12), () -> climber.stopMotor(), climber);
 
-    controller.b().onTrue(climbCommand.withTimeout(5));
-    // controller
+    driverController
+        .b()
+        .onTrue(climbCommand.withTimeout(5));
+    // driverController
     //     .b()
     //     .whileTrue(climbCommand);
+
+    //Eject algae
+    Command ejectAlgaeCommand = new StartEndCommand(() -> intake.setAlgaeVoltage(-12), () -> intake.setAlgaeVoltage(0), intake);
+    driverController
+        .rightTrigger()
+        .whileTrue(ejectAlgaeCommand);
+
+    //Intake coral
+    Command intakeCoralCommand = new StartEndCommand(() -> intake.setCoralIntakeVoltage(12), () -> intake.setCoralIntakeVoltage(0), intake);
+    driverController
+        .leftTrigger()
+        .whileTrue(intakeCoralCommand);
   }
 
   /**
