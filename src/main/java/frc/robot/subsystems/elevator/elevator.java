@@ -7,7 +7,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 public class elevator extends SubsystemBase {
 
     private final elevatorIO io;
-    private final ElevatorIOInputsLogged inputs = new ElevatorIOInputsLogged();
+    private final elevatorIOInputsLogged inputs = new elevatorIOInputsLogged();
 
     private final LoggedDashboardNumber elevatorStartPosition = new LoggedDashboardNumber("elevator Start Position", 0.0);
 
