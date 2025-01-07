@@ -122,15 +122,24 @@ public class RobotContainer {
     drive.setDefaultCommand(
         Drive.joystickDrive(
             drive,
-            () -> -controller.getLeftY()* -1,
-            () -> -controller.getLeftX()* -1,
+            () -> -controller.getLeftY() * -1,
+            () -> -controller.getLeftX() * -1,
             () -> -controller.getRightX()));
     controller
         .leftBumper()
         .whileTrue(
             Drive.joystickDriveSlow(
                 drive,
-                () -> -controller.getLeftY() ,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX() * -0.5,
+                () -> -controller.getRightX()));
+    controller
+        .rightBumper()
+        .whileTrue(
+            Drive.driveToAprilTag(
+                drive,
+                vision,
+                () -> -controller.getLeftY(),
                 () -> -controller.getLeftX() * -0.5,
                 () -> -controller.getRightX()));
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -139,8 +148,8 @@ public class RobotContainer {
         .whileTrue(
             Drive.joystickDrive(
                 drive,
-                () -> -controller.getLeftY()* -1,
-                () -> -controller.getLeftX()* -1,
+                () -> -controller.getLeftY() * -1,
+                () -> -controller.getLeftX() * -1,
                 () -> -vision.autoAlign()));
     controller
         .b()

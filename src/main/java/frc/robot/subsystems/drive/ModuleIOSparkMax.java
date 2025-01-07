@@ -59,23 +59,23 @@ public class ModuleIOSparkMax implements ModuleIO {
   public ModuleIOSparkMax(int index) {
     switch (index) {
       case 0:
-        driveSparkMax = new CANSparkMax(13, MotorType.kBrushless);
-        turnSparkMax = new CANSparkMax(9, MotorType.kBrushless);
+        driveSparkMax = new CANSparkMax(19, MotorType.kBrushless);
+        turnSparkMax = new CANSparkMax(18, MotorType.kBrushless);
         absoluteEncoderOffset = new Rotation2d(Units.degreesToRadians(0)); // MUST BE CALIBRATED
         break;
       case 1:
-        driveSparkMax = new CANSparkMax(12, MotorType.kBrushless);
-        turnSparkMax = new CANSparkMax(8, MotorType.kBrushless);
+        driveSparkMax = new CANSparkMax(29, MotorType.kBrushless);
+        turnSparkMax = new CANSparkMax(28, MotorType.kBrushless);
         absoluteEncoderOffset = new Rotation2d(Units.degreesToRadians(0)); // MUST BE CALIBRATED
         break;
       case 2:
-        driveSparkMax = new CANSparkMax(14, MotorType.kBrushless);
-        turnSparkMax = new CANSparkMax(10, MotorType.kBrushless);
+        driveSparkMax = new CANSparkMax(11, MotorType.kBrushless);
+        turnSparkMax = new CANSparkMax(12, MotorType.kBrushless);
         absoluteEncoderOffset = new Rotation2d(Units.degreesToRadians(180)); // MUST BE CALIBRATED
         break;
       case 3:
-        driveSparkMax = new CANSparkMax(15, MotorType.kBrushless);
-        turnSparkMax = new CANSparkMax(11, MotorType.kBrushless);
+        driveSparkMax = new CANSparkMax(21, MotorType.kBrushless);
+        turnSparkMax = new CANSparkMax(22, MotorType.kBrushless);
         absoluteEncoderOffset = new Rotation2d(Units.degreesToRadians(180)); // MUST BE CALIBRATED
         break;
       default:

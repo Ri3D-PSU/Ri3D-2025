@@ -12,13 +12,13 @@ public interface AprilTagVisionIO {
   public static class LoggableAprilTagVisionIOInputs {
     public double[] ntPose = {0, 0, 0, 0, 0, 0};
     public double ntYaw = 0;
-    public boolean hasTargets;
+    public boolean hasTargets = false;
     public Transform3d latestCamToTagTranslation = new Transform3d();
   }
 
   // Autolog doesn't work on these types
   public static class UnloggableAprilTagVisionIOInputs {
-    public PhotonPipelineResult latestResult = null;
+    public PhotonPipelineResult latestResult = new PhotonPipelineResult();
     public Optional<EstimatedRobotPose> latestEstimatedPose = Optional.empty();
   }
 
