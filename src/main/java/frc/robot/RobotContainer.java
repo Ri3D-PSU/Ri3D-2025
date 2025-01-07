@@ -128,7 +128,7 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
-    //Field centric swerve drive
+    // Field centric swerve drive
     drive.setDefaultCommand(
         Drive.drive(
             drive,
@@ -136,7 +136,7 @@ public class RobotContainer {
             () -> controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    //Slowed field centric swerve drive
+    // Slowed field centric swerve drive
     controller
         .leftBumper()
         .whileTrue(
@@ -146,10 +146,10 @@ public class RobotContainer {
                 () -> controller.getLeftX() * 0.25,
                 () -> -controller.getRightX() * 0.25));
 
-    //Point wheels in x formation to stop
+    // Point wheels in x formation to stop
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    //Point robot to april tag
+    // Point robot to april tag
     controller
         .a()
         .whileTrue(
@@ -159,7 +159,7 @@ public class RobotContainer {
                 () -> controller.getLeftX(),
                 () -> -vision.autoRotate()));
 
-    //Align robot to april tag
+    // Align robot to april tag
     controller
         .y()
         .whileTrue(
@@ -169,7 +169,7 @@ public class RobotContainer {
                 () -> vision.autoTranslateX(),
                 () -> -vision.autoRotate()));
 
-    //Reset gyro
+    // Reset gyro
     controller
         .start()
         .onTrue(
@@ -180,13 +180,11 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    //Climber command
-    Command climbCommand = new StartEndCommand(
-      () -> climber.setMotorVoltage(12), () -> climber.stopMotor(), climber);
+    // Climber command
+    Command climbCommand =
+        new StartEndCommand(() -> climber.setMotorVoltage(12), () -> climber.stopMotor(), climber);
 
-    controller
-        .b()
-        .onTrue(climbCommand.withTimeout(5));
+    controller.b().onTrue(climbCommand.withTimeout(5));
     // controller
     //     .b()
     //     .whileTrue(climbCommand);
