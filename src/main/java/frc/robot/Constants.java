@@ -27,6 +27,8 @@ public final class Constants {
   public static final String LOG_DIRECTORY = "/home/lvuser/logs";
   public static final long MIN_FREE_SPACE = 1024 * 1024 * 100; // 100 MB
 
+  public static final double RPM_TO_RAD_PER_SEC = 2 * Math.PI / 60;
+
   public static enum Mode {
     /** Running on a real robot. */
     REAL,
