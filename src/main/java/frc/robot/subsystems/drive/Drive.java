@@ -471,9 +471,9 @@ public class Drive extends SubsystemBase {
       DoubleSupplier omegaSupplier) {
     return Commands.run(
         () -> {
-          double HEADING_P = 0;
-          double DRIVING_TOWARD_P = 0;
-          double DRIVING_STRAFE_P = 0;
+          double HEADING_P = 0.4;
+          double DRIVING_TOWARD_P = 0.2;
+          double DRIVING_STRAFE_P = 0.2;
 
           // Apply deadband
           double linearMagnitude =
@@ -518,7 +518,7 @@ public class Drive extends SubsystemBase {
 
             linearVelocity =
                 new Translation2d(
-                        MathUtil.clamp((forwardDistance - .5) * DRIVING_TOWARD_P, -1, 1),
+                        MathUtil.clamp(-(forwardDistance - .5) * DRIVING_TOWARD_P, -1, 1),
                         MathUtil.clamp(strafeDistance * DRIVING_STRAFE_P, -1, 1))
                     .rotateBy(
                         drive
