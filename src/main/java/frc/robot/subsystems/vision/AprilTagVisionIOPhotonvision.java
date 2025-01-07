@@ -35,7 +35,7 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
               0)); // From docs, cam mounted facing forward, half a meter forward of center, half a
   // meter up from center.
 
-  PhotonCamera camera = new PhotonCamera("photonvision/Camera_Module_v1");
+  PhotonCamera camera = new PhotonCamera("Camera_Module_v1");
   private PhotonPoseEstimator poseEstimator =
       new PhotonPoseEstimator(
           APRILTAGFIELDLAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, ROBOTTOCAM);
