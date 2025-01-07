@@ -24,7 +24,7 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   private LoggableAprilTagVisionIOInputs loggableInputs = new LoggableAprilTagVisionIOInputs();
   PIDController rotatePid = new PIDController(0.125, 0, 0);
   PIDController xPid = new PIDController(1, 0, 0.005);
-  PIDController yPid = new PIDController(0.0635, 0, 0.0055);
+  PIDController yPid = new PIDController(0.0605, 0, 0.0055);
   private final AprilTagFieldLayout APRILTAGFIELDLAYOUT =
       AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
   private final Transform3d ROBOTTOCAM =
@@ -86,6 +86,7 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
         (REEF_TARGET - CAMERA_HEIGHT)
             / Math.tan(Units.degreesToRadians(CAMERA_PITCH + pitch.get()));
     double x = distance * Units.degreesToRadians(yaw.get());
+    System.out.println("x: " + x);
     return x;
   }
 

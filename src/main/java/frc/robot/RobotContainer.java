@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -34,6 +35,9 @@ import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
+import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.ElevatorIO;
+import frc.robot.subsystems.elevator.ElevatorIOSparkMax;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSparkMax;
@@ -53,9 +57,27 @@ public class RobotContainer {
   private final AprilTagVision vision;
   private final Climber climber;
   private final Intake intake;
+  private final Elevator elevator;
+
+  private final double PROCESSOR_HEIGHT = 0;
+  private final double SOURCE_HEIGHT = 11;
+  private final double L1_HEIGHT = 3;
+  private final double L2_HEIGHT = 7;
+  private final double L3_HEIGHT = 25;
+  private final double L4_HEIGHT = 50;
+  private final double TOP_ALGAE_HEIGHT = 40;
+
+  private final double PROCESSOR_ANGLE = 0;
+  private final double SOURCE_ANGLE = 0.3;
+  private final double L1_ANGLE = 0.4;
+  private final double L2_ANGLE = 0.3;
+  private final double L3_ANGLE = 0.3;
+  private final double L4_ANGLE = 0.4;
+  private final double TOP_ALGAE_ANGLE = 0;
 
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
+  private final CommandXboxController operatorController = new CommandXboxController(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -68,6 +90,7 @@ public class RobotContainer {
         vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         climber = new Climber(new ClimberIOSparkMax());
         intake = new Intake(new IntakeIOSparkMax());
+        elevator = new Elevator(new ElevatorIOSparkMax());
         drive =
             new Drive(
                 new GyroIONavX(),
@@ -82,6 +105,7 @@ public class RobotContainer {
         vision = new AprilTagVision(new AprilTagVisionIOPhotonvision());
         climber = new Climber(new ClimberIO() {});
         intake = new Intake(new IntakeIO() {});
+        elevator = new Elevator(new ElevatorIO() {});
         // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
@@ -98,6 +122,7 @@ public class RobotContainer {
         // Replayed robot, disable IO implementations
         climber = new Climber(new ClimberIO() {});
         intake = new Intake(new IntakeIO() {});
+        elevator = new Elevator(new ElevatorIO() {});
         drive =
             new Drive(
                 new GyroIO() {},
@@ -136,7 +161,7 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
-    //Field centric swerve drive
+    // Field centric swerve drive
     drive.setDefaultCommand(
         Drive.drive(
             drive,
@@ -144,7 +169,7 @@ public class RobotContainer {
             () -> driverController.getLeftX(),
             () -> -driverController.getRightX()));
 
-    //Slowed field centric swerve drive
+    // Slowed field centric swerve drive
     driverController
         .leftBumper()
         .whileTrue(
@@ -154,10 +179,10 @@ public class RobotContainer {
                 () -> driverController.getLeftX() * 0.25,
                 () -> -driverController.getRightX() * 0.25));
 
-    //Point wheels in x formation to stop
+    // Point wheels in x formation to stop
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    //Point robot to april tag
+    // Point robot to april tag
     driverController
         .a()
         .whileTrue(
@@ -167,7 +192,7 @@ public class RobotContainer {
                 () -> driverController.getLeftX(),
                 () -> -vision.autoRotate()));
 
-    //Align robot to april tag
+    // Align robot to april tag
     driverController
         .y()
         .whileTrue(
@@ -177,7 +202,7 @@ public class RobotContainer {
                 () -> vision.autoTranslateX(),
                 () -> -vision.autoRotate()));
 
-    //Reset gyro
+    // Reset gyro
     driverController
         .start()
         .onTrue(
@@ -188,28 +213,93 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    //Climber command
-    Command climbCommand = new StartEndCommand(
-      () -> climber.setMotorVoltage(12), () -> climber.stopMotor(), climber);
+    // Climber command
+    Command climbUpCommand =
+        new StartEndCommand(() -> climber.setMotorVoltage(1.5), () -> climber.stopMotor(), climber);
+    Command climbDownCommand =
+        new StartEndCommand(() -> climber.setMotorVoltage(-4), () -> climber.stopMotor(), climber);
 
-    driverController
-        .b()
-        .onTrue(climbCommand.withTimeout(5));
-    // driverController
-    //     .b()
-    //     .whileTrue(climbCommand);
+    driverController.povUp().whileTrue(climbUpCommand);
+    driverController.povDown().whileTrue(climbDownCommand);
 
-    //Eject algae
-    Command ejectAlgaeCommand = new StartEndCommand(() -> intake.setAlgaeVoltage(-12), () -> intake.setAlgaeVoltage(0), intake);
-    driverController
-        .rightTrigger()
-        .whileTrue(ejectAlgaeCommand);
+    // Eject algae
+    Command ejectAlgaeCommand =
+        new StartEndCommand(
+            () -> intake.setAlgaeVoltage(12), () -> intake.setAlgaeVoltage(0), intake);
+    driverController.rightBumper().whileTrue(ejectAlgaeCommand);
 
-    //Intake coral
-    Command intakeCoralCommand = new StartEndCommand(() -> intake.setCoralIntakeVoltage(12), () -> intake.setCoralIntakeVoltage(0), intake);
-    driverController
-        .leftTrigger()
-        .whileTrue(intakeCoralCommand);
+    Command intakeAlgaeCommand =
+        new StartEndCommand(
+            () -> intake.setAlgaeVoltage(-12), () -> intake.setAlgaeVoltage(0), intake);
+    driverController.rightTrigger().whileTrue(intakeAlgaeCommand);
+
+    // Intake coral
+    Command intakeCoralCommand =
+        new StartEndCommand(
+            () -> intake.setCoralIntakeVoltage(6), () -> intake.setCoralIntakeVoltage(0), intake);
+    driverController.leftTrigger().whileTrue(intakeCoralCommand);
+
+    // Processor state
+    Command liftToProcessorCommand =
+        new RunCommand(() -> elevator.setPosition(PROCESSOR_HEIGHT), elevator);
+    Command wristToProcessorCommand =
+        new RunCommand(() -> intake.wristAngle(PROCESSOR_ANGLE), intake);
+    ParallelCommandGroup processorCommandGroup =
+        new ParallelCommandGroup(liftToProcessorCommand, wristToProcessorCommand);
+    operatorController.povDown().onTrue(processorCommandGroup);
+
+    // Source state
+    Command liftToSourceCommand =
+        new RunCommand(() -> elevator.setPosition(SOURCE_HEIGHT), elevator);
+    Command wristToSourceCommand = new RunCommand(() -> intake.wristAngle(SOURCE_ANGLE), intake);
+    ParallelCommandGroup sourceCommandGroup =
+        new ParallelCommandGroup(liftToSourceCommand, wristToSourceCommand);
+    operatorController.povLeft().onTrue(sourceCommandGroup);
+
+    // L1 state
+    Command liftToL1Command = new RunCommand(() -> elevator.setPosition(L1_HEIGHT), elevator);
+    Command wristToL1Command = new RunCommand(() -> intake.wristAngle(L1_ANGLE), intake);
+    ParallelCommandGroup l1CommandGroup =
+        new ParallelCommandGroup(liftToL1Command, wristToL1Command);
+    operatorController.a().onTrue(l1CommandGroup);
+
+    // L2 state
+    Command liftToL2Command = new RunCommand(() -> elevator.setPosition(L2_HEIGHT), elevator);
+    Command wristToL2Command = new RunCommand(() -> intake.wristAngle(L2_ANGLE), intake);
+    ParallelCommandGroup l2CommandGroup =
+        new ParallelCommandGroup(liftToL2Command, wristToL2Command);
+    operatorController.b().onTrue(l2CommandGroup);
+
+    // L3 state
+    Command liftToL3Command = new RunCommand(() -> elevator.setPosition(L3_HEIGHT), elevator);
+    Command wristToL3Command = new RunCommand(() -> intake.wristAngle(L3_ANGLE), intake);
+    ParallelCommandGroup l3CommandGroup =
+        new ParallelCommandGroup(liftToL3Command, wristToL3Command);
+    operatorController.y().onTrue(l3CommandGroup);
+
+    // L4 state
+    Command liftToL4Command = new RunCommand(() -> elevator.setPosition(L4_HEIGHT), elevator);
+    Command wristToL4Command = new RunCommand(() -> intake.wristAngle(L4_ANGLE), intake);
+    ParallelCommandGroup l4CommandGroup =
+        new ParallelCommandGroup(liftToL4Command, wristToL4Command);
+    operatorController.x().onTrue(l4CommandGroup);
+
+    // Top algae state
+    Command liftToTopAlgaeCommand =
+        new RunCommand(() -> elevator.setPosition(TOP_ALGAE_HEIGHT), elevator);
+    Command wristToTopAlgaeCommand =
+        new RunCommand(() -> intake.wristAngle(TOP_ALGAE_ANGLE), intake);
+    ParallelCommandGroup topAlgaeCommandGroup =
+        new ParallelCommandGroup(liftToTopAlgaeCommand, wristToTopAlgaeCommand);
+    operatorController.povUp().onTrue(topAlgaeCommandGroup);
+
+    // Manual lift
+    Command manualLift =
+        new RunCommand(() -> elevator.setVoltage(-operatorController.getLeftY() * 0.5), elevator);
+    Command manualWrist =
+        new RunCommand(() -> intake.setWristVoltage(operatorController.getRightY() * 0.25), intake);
+    ParallelCommandGroup manualCommandGroup = new ParallelCommandGroup(manualLift, manualWrist);
+    operatorController.start().whileTrue(manualCommandGroup);
   }
 
   /**

@@ -13,38 +13,43 @@ import com.revrobotics.RelativeEncoder;
 public class ClimberIOSparkMax implements ClimberIO {
   private final int MOTOR_GEAR_RATIO = 405;
 
-  private CANSparkMax motor;
+  private CANSparkMax motor1;
+  private CANSparkMax motor2;
   private RelativeEncoder motorRelativeEncoder;
 
   public ClimberIOSparkMax() {
-    motor = new CANSparkMax(0, MotorType.kBrushless);
+    motor1 = new CANSparkMax(13, MotorType.kBrushless);
+    motor2 = new CANSparkMax(23, MotorType.kBrushless);
 
-    motor.restoreFactoryDefaults();
+    motor1.restoreFactoryDefaults();
 
-    motor.setCANTimeout(250);
-    motor.setSmartCurrentLimit(40);
-    motor.enableVoltageCompensation(12);
-    motor.setIdleMode(IdleMode.kBrake);
+    motor1.setCANTimeout(250);
+    motor1.setSmartCurrentLimit(40);
+    motor1.enableVoltageCompensation(12);
+    motor1.setIdleMode(IdleMode.kBrake);
 
-    motorRelativeEncoder = motor.getEncoder();
+    motorRelativeEncoder = motor1.getEncoder();
     motorRelativeEncoder.setPositionConversionFactor(1. / MOTOR_GEAR_RATIO);
 
-    motor.burnFlash();
+    motor2.follow(motor1, true);
+
+    motor1.burnFlash();
+    motor2.burnFlash();
   }
 
   @Override
   public void updateInputs(ClimberIOInputs inputs) {
     inputs.motorAngle = motorRelativeEncoder.getPosition();
-    inputs.motorVoltage = motor.getBusVoltage();
-    inputs.motorCurrent = motor.getOutputCurrent();
+    inputs.motorVoltage = motor1.getBusVoltage();
+    inputs.motorCurrent = motor1.getOutputCurrent();
   }
 
   @Override
   public void setMotorVoltage(double volts) {
-    motor.setVoltage(volts);
+    motor1.setVoltage(volts);
   }
 
   public void stopMotor() {
-    motor.stopMotor();
+    motor1.stopMotor();
   }
 }
