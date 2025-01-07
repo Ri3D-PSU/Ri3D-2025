@@ -60,19 +60,19 @@ public class RobotContainer {
   private final Elevator elevator;
 
   private final double PROCESSOR_HEIGHT = 0;
-  private final double SOURCE_HEIGHT = 11;
+  private final double SOURCE_HEIGHT = 8.75;
   private final double L1_HEIGHT = 3;
-  private final double L2_HEIGHT = 7;
-  private final double L3_HEIGHT = 25;
-  private final double L4_HEIGHT = 50;
+  private final double L2_HEIGHT = 5.5;
+  private final double L3_HEIGHT = 21.5;
+  private final double L4_HEIGHT = 52.5;
   private final double TOP_ALGAE_HEIGHT = 40;
 
   private final double PROCESSOR_ANGLE = 0;
-  private final double SOURCE_ANGLE = 0.3;
-  private final double L1_ANGLE = 0.4;
-  private final double L2_ANGLE = 0.3;
-  private final double L3_ANGLE = 0.3;
-  private final double L4_ANGLE = 0.4;
+  private final double SOURCE_ANGLE = 0.15;
+  private final double L1_ANGLE = 0.3;
+  private final double L2_ANGLE = 0.225;
+  private final double L3_ANGLE = 0.225;
+  private final double L4_ANGLE = 0.26;
   private final double TOP_ALGAE_ANGLE = 0;
 
   // Controller
@@ -165,9 +165,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         Drive.drive(
             drive,
-            () -> driverController.getLeftY(),
-            () -> driverController.getLeftX(),
-            () -> -driverController.getRightX()));
+            () -> driverController.getLeftY() * 0.6,
+            () -> driverController.getLeftX() * 0.6,
+            () -> -driverController.getRightX() * 0.65));
 
     // Slowed field centric swerve drive
     driverController
@@ -175,9 +175,9 @@ public class RobotContainer {
         .whileTrue(
             Drive.drive(
                 drive,
-                () -> driverController.getLeftY() * 0.25,
-                () -> driverController.getLeftX() * 0.25,
-                () -> -driverController.getRightX() * 0.25));
+                () -> driverController.getLeftY() * 0.5,
+                () -> driverController.getLeftX() * 0.5,
+                () -> -driverController.getRightX() * 0.5));
 
     // Point wheels in x formation to stop
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -218,8 +218,12 @@ public class RobotContainer {
         new StartEndCommand(() -> climber.setMotorVoltage(1.5), () -> climber.stopMotor(), climber);
     Command climbDownCommand =
         new StartEndCommand(() -> climber.setMotorVoltage(-4), () -> climber.stopMotor(), climber);
+    Command climbHoldCommand =
+        new StartEndCommand(
+            () -> climber.setMotorVoltage(-1.5), () -> climber.stopMotor(), climber);
 
     driverController.povUp().whileTrue(climbUpCommand);
+    driverController.povLeft().whileTrue(climbHoldCommand);
     driverController.povDown().whileTrue(climbDownCommand);
 
     // Eject algae
@@ -236,8 +240,13 @@ public class RobotContainer {
     // Intake coral
     Command intakeCoralCommand =
         new StartEndCommand(
-            () -> intake.setCoralIntakeVoltage(6), () -> intake.setCoralIntakeVoltage(0), intake);
+            () -> intake.setCoralIntakeVoltage(-6), () -> intake.setCoralIntakeVoltage(0), intake);
     driverController.leftTrigger().whileTrue(intakeCoralCommand);
+
+    Command ejectCoralCommand =
+        new StartEndCommand(
+            () -> intake.setCoralIntakeVoltage(6), () -> intake.setCoralIntakeVoltage(0), intake);
+    operatorController.leftBumper().whileTrue(ejectCoralCommand);
 
     // Processor state
     Command liftToProcessorCommand =
@@ -296,10 +305,11 @@ public class RobotContainer {
     // Manual lift
     Command manualLift =
         new RunCommand(() -> elevator.setVoltage(-operatorController.getLeftY() * 0.5), elevator);
-    Command manualWrist =
-        new RunCommand(() -> intake.setWristVoltage(operatorController.getRightY() * 0.25), intake);
-    ParallelCommandGroup manualCommandGroup = new ParallelCommandGroup(manualLift, manualWrist);
-    operatorController.start().whileTrue(manualCommandGroup);
+    // Command manualWrist =
+    //     new RunCommand(() -> intake.setWristVoltage(operatorController.getRightY() * 0.25),
+    // intake);
+    // ParallelCommandGroup manualCommandGroup = new ParallelCommandGroup(manualLift, manualWrist);
+    operatorController.start().whileTrue(manualLift);
   }
 
   /**
