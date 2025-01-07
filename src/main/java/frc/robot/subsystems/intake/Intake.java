@@ -7,38 +7,26 @@ import org.littletonrobotics.junction.Logger;
 public class Intake extends SubsystemBase {
 
   IntakeIO io;
-  IntakeInputsAutoLogged inputs = new IntakeInputsAutoLogged();
+  IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
   public Intake(IntakeIO io) {
     this.io = io;
   }
 
-  public void setPrimaryAlgaeIntakeVelocity(double velocity) {
-    io.setPrimaryAlgaeIntakeVelocity(velocity);
-    Logger.getInstance().recordOutput("PrimaryAlgaeIntakeTargetVelocity", velocity);
+  public void setAlgaeVoltage(double voltage) {
+    io.setAlgaeVoltage(voltage);
   }
 
-  public void setSecondaryAlgaeIntakeVelocity(double velocity) {
-    io.setSecondaryAlgaeIntakeVelocity(velocity);
-    Logger.getInstance().recordOutput("SecondaryAlgaeIntakeTargetVelocity", velocity);
-  }
-
-  public void setCoralIntakeVelocity(double velocity) {
-    io.setCoralIntakeVelocity(velocity);
-    Logger.getInstance().recordOutput("CoralIntakeTargetVelocity", velocity);
-  }
-
-  public void setCoralWristVelocity(double velocity) {
-    io.setCoralWristVelocity(velocity);
-    Logger.getInstance().recordOutput("CoralWristTargetVelocity", velocity);
+  public void setCoralIntakeVoltage(double voltage) {
+    io.setCoralIntakeVoltage(voltage);
   }
 
   private double targetPosition = 0.0;
-    private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.577, 0.0);
+  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.577, 0.0);
 
   public void setWristPositionDegrees(double position) {
     double targetPosition = Math.toRadians(position);
-}
+  }
 
 public double getTargetWristPosition() {
     return targetPosition;
@@ -47,32 +35,8 @@ public double getTargetWristPosition() {
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    Logger.getInstance().processInputs("Intake", inputs);
-
     double wristffvoltage = feedforward.calculate(inputs.coralWristPosition, inputs.coralWristVelocity);
-        Logger.getInstance().recordOutput("ArmFFVoltage", wristffvoltage);
-
-        io.setCoralWristPosition(targetPosition, wristffvoltage);
-  }
-
-  public double getAlgaeIntakeVelocity() {
-    return inputs.primaryAlgaeIntakeVelocity;
-  }
-
-  public double getCoralIntakeVelocity() {
-    return inputs.coralIntakeVelocity;
-  }
-
-  public double getCoralWristVelocity() {
-    return inputs.coralWristVoltage;
-  }
-
-  public double getAlgaeIntakeCurrent() {
-    return inputs.primaryAlgaeIntakeCurrent;
-  }
-
-  public double getCoralIntakeCurrent() {
-    return inputs.coralIntakeCurrent;
+    io.setCoralWristPosition(targetPosition, wristffvoltage);
   }
 
   public double getCoralWristIntakeCurrent() {
