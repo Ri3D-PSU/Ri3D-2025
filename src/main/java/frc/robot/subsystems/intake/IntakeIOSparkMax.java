@@ -72,6 +72,7 @@ public class IntakeIOSparkMax implements IntakeIO {
 
   @Override
   public void wristAngle(double position) {
+    // System.out.println("Wrist position: " + getWristPosition());
     coralWrist.getPIDController().setReference(position, CANSparkMax.ControlType.kPosition);
   }
 
@@ -82,7 +83,7 @@ public class IntakeIOSparkMax implements IntakeIO {
 
   @Override
   public void setWristVoltage(double voltage) {
-    System.out.println("Wrist position: " + getWristPosition());
+    // System.out.println("Wrist position: " + getWristPosition());
     coralWrist.set(voltage);
   }
 }

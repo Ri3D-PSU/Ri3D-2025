@@ -25,6 +25,7 @@ public class Elevator extends SubsystemBase {
 
   // Set the elevator to a specific position
   public void setPosition(double position) {
+    // System.out.println("Elevator position: " + getPosition());
     io.setPosition(position);
   }
 
