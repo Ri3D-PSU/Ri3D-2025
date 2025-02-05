@@ -497,18 +497,18 @@ public class Drive extends SubsystemBase {
           double driveXDecimal =
               MathUtil.clamp(
                   MathUtil.clamp(MathUtil.applyDeadband(linearVelocity.getX(), .1), -.4, .4)
-                      + MathUtil.applyDeadband(xSupplier.getAsDouble(), .02) * .4,
+                      + MathUtil.applyDeadband(xSupplier.getAsDouble(), .02) * .3,
                   -1,
                   1);
           double driveYDecimal =
               MathUtil.clamp(
                   MathUtil.clamp(MathUtil.applyDeadband(linearVelocity.getY(), .1), -.4, .4)
-                      + MathUtil.applyDeadband(ySupplier.getAsDouble(), .02) * .4,
+                      + MathUtil.applyDeadband(ySupplier.getAsDouble(), .02) * .3,
                   -1,
                   1);
           double omegaDecimal =
               MathUtil.clamp(
-                  MathUtil.clamp(MathUtil.applyDeadband(omega, .1), -.4, .4)
+                  MathUtil.clamp(MathUtil.applyDeadband(omega, .05), -.4, .4)
                       + MathUtil.applyDeadband(omegaSupplier.getAsDouble(), .02) * .2,
                   -1,
                   1);
