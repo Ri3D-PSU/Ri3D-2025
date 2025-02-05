@@ -186,11 +186,12 @@ public class RobotContainer {
     driverController
         .a()
         .whileTrue(
-            Drive.drive(
+            Drive.driveToAprilTag(
                 drive,
-                () -> driverController.getLeftY(),
+                vision,
+                () -> driverController.getLeftY() * -1,
                 () -> driverController.getLeftX(),
-                () -> -vision.autoRotate()));
+                () -> driverController.getRightX()));
 
     // Align robot to april tag
     driverController
@@ -310,6 +311,17 @@ public class RobotContainer {
     // intake);
     // ParallelCommandGroup manualCommandGroup = new ParallelCommandGroup(manualLift, manualWrist);
     operatorController.start().whileTrue(manualLift);
+
+    // Command combineOdometry =
+    //     new RunCommand(() -> drive.updateOdometryWithVision(vision.getEstimatedPose()));
+
+    // Trigger alwaysOnTrigger =
+    //     new Trigger(
+    //         () -> {
+    //           return true;
+    //         });
+
+    // alwaysOnTrigger.whileTrue(combineOdometry);
   }
 
   /**

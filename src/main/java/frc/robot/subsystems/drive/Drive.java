@@ -41,11 +41,13 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIO;
 import frc.robot.util.LocalADStarAK;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.EstimatedRobotPose;
 
 public class Drive extends SubsystemBase {
   private static final double DEADBAND = 0.1;
@@ -75,8 +77,6 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
 
-  private final AprilTagVision aprilTagVision;
-
   public Drive(
       GyroIO gyroIO,
       AprilTagVisionIO aprilTagVisionIO,
@@ -86,7 +86,6 @@ public class Drive extends SubsystemBase {
       ModuleIO brModuleIO) {
     this.gyroIO = gyroIO;
     gyro = new Gyro(gyroIO);
-    aprilTagVision = new AprilTagVision(aprilTagVisionIO);
     modules[0] = new Module(flModuleIO, 0);
     modules[1] = new Module(frModuleIO, 1);
     modules[2] = new Module(blModuleIO, 2);
@@ -197,6 +196,10 @@ public class Drive extends SubsystemBase {
       // Apply update
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
     }
+
+    // System.out.println(poseEstimator.getEstimatedPosition().getX());
+    // System.out.println(poseEstimator.getEstimatedPosition().getY());
+    // System.out.println(poseEstimator.getEstimatedPosition().getRotation().getRadians());
   }
 
   /**
@@ -315,6 +318,17 @@ public class Drive extends SubsystemBase {
     };
   }
 
+  public void updateOdometryWithVision(Optional<EstimatedRobotPose> visionPose) {
+    System.out.println("called vision odometry updater");
+    if (visionPose.isEmpty()) {
+      return;
+    }
+    System.out.println("vision odometry updater has pose");
+    EstimatedRobotPose estimatedPose = visionPose.get();
+    poseEstimator.addVisionMeasurement(
+        estimatedPose.estimatedPose.toPose2d(), estimatedPose.timestampSeconds);
+  }
+
   /**
    * Field relative drive command using two joysticks (controlling linear and angular velocities).
    */
@@ -422,9 +436,9 @@ public class Drive extends SubsystemBase {
       DoubleSupplier omegaSupplier) {
     return Commands.run(
         () -> {
-          double HEADING_P = 0.4;
-          double DRIVING_TOWARD_P = 0.2;
-          double DRIVING_STRAFE_P = 0.2;
+          double HEADING_P = .6;
+          // double DRIVING_TOWARD_P = 0;
+          double DRIVING_STRAFE_P = .6;
 
           // Apply deadband
           double linearMagnitude =
@@ -469,22 +483,41 @@ public class Drive extends SubsystemBase {
 
             linearVelocity =
                 new Translation2d(
-                        MathUtil.clamp(-(forwardDistance - .5) * DRIVING_TOWARD_P, -1, 1),
+                        0, // MathUtil.clamp(-(forwardDistance - .5) * DRIVING_TOWARD_P, -1, 1),
                         MathUtil.clamp(strafeDistance * DRIVING_STRAFE_P, -1, 1))
                     .rotateBy(
                         drive
                             .getRotation()
-                            .minus(Rotation2d.fromRadians(robotToTagAngleDifference)));
+                            .plus(Rotation2d.fromRadians(robotToTagAngleDifference)));
 
             double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
             omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
           }
 
+          double driveXDecimal =
+              MathUtil.clamp(
+                  MathUtil.clamp(MathUtil.applyDeadband(linearVelocity.getX(), .1), -.4, .4)
+                      + MathUtil.applyDeadband(xSupplier.getAsDouble(), .02) * .4,
+                  -1,
+                  1);
+          double driveYDecimal =
+              MathUtil.clamp(
+                  MathUtil.clamp(MathUtil.applyDeadband(linearVelocity.getY(), .1), -.4, .4)
+                      + MathUtil.applyDeadband(ySupplier.getAsDouble(), .02) * .4,
+                  -1,
+                  1);
+          double omegaDecimal =
+              MathUtil.clamp(
+                  MathUtil.clamp(MathUtil.applyDeadband(omega, .1), -.4, .4)
+                      + MathUtil.applyDeadband(omegaSupplier.getAsDouble(), .02) * .2,
+                  -1,
+                  1);
+
           drive.runVelocity(
               ChassisSpeeds.fromFieldRelativeSpeeds(
-                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-                  omega * drive.getMaxAngularSpeedRadPerSec(),
+                  driveXDecimal * drive.getMaxLinearSpeedMetersPerSec(),
+                  driveYDecimal * drive.getMaxLinearSpeedMetersPerSec(),
+                  omegaDecimal * drive.getMaxAngularSpeedRadPerSec(),
                   isFlipped
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
                       : drive.getRotation()));
