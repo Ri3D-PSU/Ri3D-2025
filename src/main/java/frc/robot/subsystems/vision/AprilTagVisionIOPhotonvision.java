@@ -26,7 +26,7 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   PIDController xPid = new PIDController(1, 0, 0.005);
   PIDController yPid = new PIDController(0.0605, 0, 0.0055);
   private final AprilTagFieldLayout APRILTAGFIELDLAYOUT =
-      AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+      AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
   private final Transform3d ROBOTTOCAM =
       new Transform3d(
           new Translation3d(0.5, 0.0, 0.5),
@@ -63,8 +63,8 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
     loggableInputs.ntYaw = yaw.get();
     loggableInputs.ntX = x.get();
     loggableInputs.ntY = y.get();
-    loggableInputs.hasTarget = hasTarget.get();
     unloggableInputs.latestResult = camera.getLatestResult();
+    loggableInputs.hasTargets = unloggableInputs.latestResult.hasTargets();
     unloggableInputs.latestEstimatedPose = updatePoseEstimator(unloggableInputs.latestResult);
     loggableInputs.latestCamToTagTranslation = getCamToTag(unloggableInputs.latestResult);
   }
@@ -117,7 +117,7 @@ public class AprilTagVisionIOPhotonvision implements AprilTagVisionIO {
   }
 
   @Override
-  public boolean hasTarget() {
+  public boolean hasTargets() {
     return hasTarget.get();
   }
 

@@ -41,11 +41,13 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIO;
 import frc.robot.util.LocalADStarAK;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.EstimatedRobotPose;
 
 public class Drive extends SubsystemBase {
   private static final double DEADBAND = 0.1;
@@ -75,8 +77,6 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
 
-  private final AprilTagVision aprilTagVision;
-
   public Drive(
       GyroIO gyroIO,
       AprilTagVisionIO aprilTagVisionIO,
@@ -86,7 +86,6 @@ public class Drive extends SubsystemBase {
       ModuleIO brModuleIO) {
     this.gyroIO = gyroIO;
     gyro = new Gyro(gyroIO);
-    aprilTagVision = new AprilTagVision(aprilTagVisionIO);
     modules[0] = new Module(flModuleIO, 0);
     modules[1] = new Module(frModuleIO, 1);
     modules[2] = new Module(blModuleIO, 2);
@@ -197,6 +196,10 @@ public class Drive extends SubsystemBase {
       // Apply update
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
     }
+
+    // System.out.println(poseEstimator.getEstimatedPosition().getX());
+    // System.out.println(poseEstimator.getEstimatedPosition().getY());
+    // System.out.println(poseEstimator.getEstimatedPosition().getRotation().getRadians());
   }
 
   /**
@@ -315,6 +318,17 @@ public class Drive extends SubsystemBase {
     };
   }
 
+  public void updateOdometryWithVision(Optional<EstimatedRobotPose> visionPose) {
+    System.out.println("called vision odometry updater");
+    if (visionPose.isEmpty()) {
+      return;
+    }
+    System.out.println("vision odometry updater has pose");
+    EstimatedRobotPose estimatedPose = visionPose.get();
+    poseEstimator.addVisionMeasurement(
+        estimatedPose.estimatedPose.toPose2d(), estimatedPose.timestampSeconds);
+  }
+
   /**
    * Field relative drive command using two joysticks (controlling linear and angular velocities).
    */
@@ -352,6 +366,158 @@ public class Drive extends SubsystemBase {
                   linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
                   linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
                   omega * drive.getMaxAngularSpeedRadPerSec(),
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation()));
+        },
+        drive);
+  }
+
+  public static Command driveFacingAprilTag(
+      Drive drive,
+      AprilTagVision vision,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier omegaSupplier) {
+    return Commands.run(
+        () -> {
+          double HEADING_P = 0;
+
+          // Apply deadband
+          double linearMagnitude =
+              MathUtil.applyDeadband(
+                  Math.hypot(-xSupplier.getAsDouble(), ySupplier.getAsDouble()), DEADBAND);
+          Rotation2d linearDirection =
+              new Rotation2d(-xSupplier.getAsDouble(), ySupplier.getAsDouble());
+          double omega = MathUtil.applyDeadband(-omegaSupplier.getAsDouble(), DEADBAND);
+
+          // Square values
+          linearMagnitude = linearMagnitude * linearMagnitude;
+          omega = Math.copySign(omega * omega, omega);
+
+          // Calcaulate new linear velocity
+          Translation2d linearVelocity =
+              new Pose2d(new Translation2d(), linearDirection)
+                  .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
+                  .getTranslation();
+
+          // Convert to field relative speeds & send command
+          boolean isFlipped =
+              DriverStation.getAlliance().isPresent()
+                  && DriverStation.getAlliance().get() == Alliance.Red;
+
+          if (vision.hasTargets()) {
+            Transform2d cameraToTarget =
+                new Transform2d(
+                    vision.getCamToTag().getTranslation().toTranslation2d(),
+                    vision.getCamToTag().getRotation().toRotation2d());
+
+            double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
+            omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
+          }
+
+          drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                  omega * drive.getMaxAngularSpeedRadPerSec(),
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation()));
+        },
+        drive);
+  }
+
+  public static Command driveToAprilTag(
+      Drive drive,
+      AprilTagVision vision,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier omegaSupplier) {
+    return Commands.run(
+        () -> {
+          double HEADING_P = .6;
+          // double DRIVING_TOWARD_P = 0;
+          double DRIVING_STRAFE_P = .6;
+
+          // Apply deadband
+          double linearMagnitude =
+              MathUtil.applyDeadband(
+                  Math.hypot(-xSupplier.getAsDouble(), ySupplier.getAsDouble()), DEADBAND);
+          Rotation2d linearDirection =
+              new Rotation2d(-xSupplier.getAsDouble(), ySupplier.getAsDouble());
+          double omega = MathUtil.applyDeadband(-omegaSupplier.getAsDouble(), DEADBAND);
+
+          // Square values
+          linearMagnitude = linearMagnitude * linearMagnitude;
+          omega = Math.copySign(omega * omega, omega);
+
+          // Calcaulate new linear velocity
+          Translation2d linearVelocity =
+              new Pose2d(new Translation2d(), linearDirection)
+                  .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
+                  .getTranslation();
+
+          // Convert to field relative speeds & send command
+          boolean isFlipped =
+              DriverStation.getAlliance().isPresent()
+                  && DriverStation.getAlliance().get() == Alliance.Red;
+
+          if (vision.hasTargets()) {
+            Transform2d cameraToTarget =
+                new Transform2d(
+                    vision.getCamToTag().getTranslation().toTranslation2d(),
+                    vision.getCamToTag().getRotation().toRotation2d());
+
+            double photonvisionCameraAngle = cameraToTarget.getRotation().getRadians();
+            double robotToTagAngleDifference =
+                Math.copySign(Math.PI - Math.abs(photonvisionCameraAngle), photonvisionCameraAngle);
+
+            // Projects vector pointing from camera to apriltag onto the plane of the apriltag
+            // Magnitude of the projection
+            double strafeDistance = cameraToTarget.getX() * -Math.sin(photonvisionCameraAngle);
+            // Projects vector pointing from camera to apriltag onto the normal of the plane of the
+            // apriltag
+            // Magnitude of the projection
+            double forwardDistance = cameraToTarget.getX() * Math.cos(photonvisionCameraAngle);
+
+            linearVelocity =
+                new Translation2d(
+                        0, // MathUtil.clamp(-(forwardDistance - .5) * DRIVING_TOWARD_P, -1, 1),
+                        MathUtil.clamp(strafeDistance * DRIVING_STRAFE_P, -1, 1))
+                    .rotateBy(
+                        drive
+                            .getRotation()
+                            .plus(Rotation2d.fromRadians(robotToTagAngleDifference)));
+
+            double headingToTag = -Math.atan2(cameraToTarget.getY(), cameraToTarget.getX());
+            omega = MathUtil.clamp(HEADING_P * headingToTag, -1, 1);
+          }
+
+          double driveXDecimal =
+              MathUtil.clamp(
+                  MathUtil.clamp(MathUtil.applyDeadband(linearVelocity.getX(), .1), -.4, .4)
+                      + MathUtil.applyDeadband(xSupplier.getAsDouble(), .02) * .3,
+                  -1,
+                  1);
+          double driveYDecimal =
+              MathUtil.clamp(
+                  MathUtil.clamp(MathUtil.applyDeadband(linearVelocity.getY(), .1), -.4, .4)
+                      + MathUtil.applyDeadband(ySupplier.getAsDouble(), .02) * .3,
+                  -1,
+                  1);
+          double omegaDecimal =
+              MathUtil.clamp(
+                  MathUtil.clamp(MathUtil.applyDeadband(omega, .05), -.4, .4)
+                      + MathUtil.applyDeadband(omegaSupplier.getAsDouble(), .02) * .2,
+                  -1,
+                  1);
+
+          drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  driveXDecimal * drive.getMaxLinearSpeedMetersPerSec(),
+                  driveYDecimal * drive.getMaxLinearSpeedMetersPerSec(),
+                  omegaDecimal * drive.getMaxAngularSpeedRadPerSec(),
                   isFlipped
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
                       : drive.getRotation()));

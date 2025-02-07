@@ -14,7 +14,7 @@ public interface AprilTagVisionIO {
     public double ntYaw = 0;
     public double ntX = 0;
     public double ntY = 0;
-    public boolean hasTarget = false;
+    public boolean hasTargets = false;
     public Transform3d latestCamToTagTranslation = new Transform3d();
   }
 
@@ -47,7 +47,7 @@ public interface AprilTagVisionIO {
     return 0;
   }
 
-  public default boolean hasTarget() {
+  public default boolean hasTargets() {
     return false;
   }
 
