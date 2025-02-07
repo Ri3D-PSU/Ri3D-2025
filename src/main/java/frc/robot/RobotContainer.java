@@ -183,6 +183,7 @@ public class RobotContainer {
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Point robot to april tag
+    /*
     driverController
         .a()
         .whileTrue(
@@ -192,8 +193,9 @@ public class RobotContainer {
                 () -> driverController.getLeftY() * -1,
                 () -> driverController.getLeftX(),
                 () -> driverController.getRightX()));
-
+    */
     // Align robot to april tag
+    /*
     driverController
         .y()
         .whileTrue(
@@ -202,7 +204,7 @@ public class RobotContainer {
                 () -> vision.autoTranslateY(),
                 () -> vision.autoTranslateX(),
                 () -> -vision.autoRotate()));
-
+    */
     // Reset gyro
     driverController
         .start()
@@ -221,7 +223,7 @@ public class RobotContainer {
         new StartEndCommand(() -> climber.setMotorVoltage(-4), () -> climber.stopMotor(), climber);
     Command climbHoldCommand =
         new StartEndCommand(
-            () -> climber.setMotorVoltage(-1.5), () -> climber.stopMotor(), climber);
+            () -> climber.setMotorVoltage(-0.75), () -> climber.stopMotor(), climber);
 
     driverController.povUp().whileTrue(climbUpCommand);
     driverController.povLeft().whileTrue(climbHoldCommand);
