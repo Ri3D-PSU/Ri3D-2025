@@ -338,6 +338,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected().withTimeout(2.5);
+    return autoChooser.getSelected().withTimeout(2.0);
   }
 }
