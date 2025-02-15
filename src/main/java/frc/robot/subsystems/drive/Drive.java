@@ -373,6 +373,40 @@ public class Drive extends SubsystemBase {
         drive);
   }
 
+  public static Command driveAuto(Drive drive, double xSpeed, double ySpeed, double wSpeed) {
+    return Commands.run(
+        () -> {
+          // Apply deadband
+          double linearMagnitude = MathUtil.applyDeadband(Math.hypot(-xSpeed, ySpeed), DEADBAND);
+          Rotation2d linearDirection = new Rotation2d(-xSpeed, ySpeed);
+          double omega = MathUtil.applyDeadband(-wSpeed, DEADBAND);
+
+          // Square values
+          linearMagnitude = linearMagnitude * linearMagnitude;
+          omega = Math.copySign(omega * omega, omega);
+
+          // Calcaulate new linear velocity
+          Translation2d linearVelocity =
+              new Pose2d(new Translation2d(), linearDirection)
+                  .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
+                  .getTranslation();
+
+          // Convert to field relative speeds & send command
+          boolean isFlipped =
+              DriverStation.getAlliance().isPresent()
+                  && DriverStation.getAlliance().get() == Alliance.Red;
+          drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                  omega * drive.getMaxAngularSpeedRadPerSec(),
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation()));
+        },
+        drive);
+  }
+
   public static Command driveFacingAprilTag(
       Drive drive,
       AprilTagVision vision,
