@@ -63,18 +63,18 @@ public class RobotContainer {
   private final double PROCESSOR_HEIGHT = 0;
   private final double SOURCE_HEIGHT = 8.75;
   private final double L1_HEIGHT = 3;
-  private final double L2_HEIGHT = 5.5;
-  private final double L3_HEIGHT = 19;
+  private final double L2_HEIGHT = 4.75;
+  private final double L3_HEIGHT = 21.5;
   private final double L4_HEIGHT = 52.5;
-  private final double TOP_ALGAE_HEIGHT = 40;
+  private final double TOP_ALGAE_HEIGHT = 34.5;
 
   private final double WRIST_CONVERSION_FACTOR = 243 / 9;
   private final double PROCESSOR_ANGLE = 0;
   private final double SOURCE_ANGLE = 0.15 * WRIST_CONVERSION_FACTOR;
-  private final double L1_ANGLE = 0.3 * WRIST_CONVERSION_FACTOR;
-  private final double L2_ANGLE = 0.225 * WRIST_CONVERSION_FACTOR;
-  private final double L3_ANGLE = 0.220 * WRIST_CONVERSION_FACTOR;
-  private final double L4_ANGLE = 0.26 * WRIST_CONVERSION_FACTOR;
+  private final double L1_ANGLE = 0.35 * WRIST_CONVERSION_FACTOR;
+  private final double L2_ANGLE = 0.255 * WRIST_CONVERSION_FACTOR;
+  private final double L3_ANGLE = 0.27 * WRIST_CONVERSION_FACTOR;
+  private final double L4_ANGLE = 0.335 * WRIST_CONVERSION_FACTOR;
   private final double TOP_ALGAE_ANGLE = 0;
 
   // Controller
@@ -175,6 +175,12 @@ public class RobotContainer {
             () -> driverController.getLeftY() * 0.6,
             () -> driverController.getLeftX() * 0.6,
             () -> -driverController.getRightX() * 0.65));
+
+    // Command holdCoralCommand =
+    //     new StartEndCommand(
+    //         () -> intake.setCoralIntakeVoltage(-1), () -> intake.setCoralIntakeVoltage(0),
+    // intake);
+    // intake.setDefaultCommand(holdCoralCommand);
 
     // Slowed field centric swerve drive
     driverController
@@ -339,6 +345,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected().withTimeout(2.0);
+    return autoChooser.getSelected().withTimeout(1.5);
   }
 }
