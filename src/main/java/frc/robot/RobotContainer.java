@@ -63,16 +63,17 @@ public class RobotContainer {
   private final double SOURCE_HEIGHT = 8.75;
   private final double L1_HEIGHT = 3;
   private final double L2_HEIGHT = 5.5;
-  private final double L3_HEIGHT = 21.5;
+  private final double L3_HEIGHT = 19;
   private final double L4_HEIGHT = 52.5;
   private final double TOP_ALGAE_HEIGHT = 40;
 
+  private final double WRIST_CONVERSION_FACTOR = 243 / 9;
   private final double PROCESSOR_ANGLE = 0;
-  private final double SOURCE_ANGLE = 0.15;
-  private final double L1_ANGLE = 0.3;
-  private final double L2_ANGLE = 0.225;
-  private final double L3_ANGLE = 0.225;
-  private final double L4_ANGLE = 0.26;
+  private final double SOURCE_ANGLE = 0.15 * WRIST_CONVERSION_FACTOR;
+  private final double L1_ANGLE = 0.3 * WRIST_CONVERSION_FACTOR;
+  private final double L2_ANGLE = 0.225 * WRIST_CONVERSION_FACTOR;
+  private final double L3_ANGLE = 0.220 * WRIST_CONVERSION_FACTOR;
+  private final double L4_ANGLE = 0.26 * WRIST_CONVERSION_FACTOR;
   private final double TOP_ALGAE_ANGLE = 0;
 
   // Controller
